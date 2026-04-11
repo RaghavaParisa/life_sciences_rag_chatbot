@@ -161,7 +161,7 @@ ollama pull qwen2.5:3b
 # ▶️ Run Application
 
 ``` bash
-python ingestion.py
+cd clinicaltrails
 python app.py
 ```
 
