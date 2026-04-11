@@ -1,0 +1,108 @@
+{
+  "summary": {
+    "accuracy": 0.5058,
+    "f1": 0.2847,
+    "faithfulness": 0.6747,
+    "answer_relevance": 0.6317
+  },
+  "results": [
+    {
+      "question": "What are the synonyms and the primary DrugBank ID for the drug Lepirudin",
+      "ground_truth": "[Leu1, Thr2]-63-desulfohirudin, Desulfatohirudin, Hirudin variant-1, Lepirudin, Lepirudin recombinant, R-hirudin",
+      "evaluation_answer": "The primary DrugBank ID for the drug Lepirudin is DB00001.\n\nThe synonyms provided in the context include: Leu1, Thr2)-63-desulfohirudin, Desulfatohirudin, Hirudin variant-1, Lepirudin, and Lepirudin recombinant.",
+      "gradio_answer": "The synonyms for the drug Lepirudin are [Leu1, Thr2]-63-desulfohirudin, Desulfatohirudin, Hirudin variant-1, Lepirudin, Lepirudin recombinant, and R-hirudin.\n\nThe primary DrugBank ID for the drug Lepirudin is DB00001.",
+      "accuracy_score": 0.628,
+      "accuracy_range": "0.5-0.7",
+      "precision": 0.2692,
+      "recall": 0.7778,
+      "f1": 0.4,
+      "faithfulness": 0.7106,
+      "answer_relevance": 0.8504,
+      "latency_sec": 7.59
+    },
+    {
+      "question": "Describe the purpose and the years of availability for the Mental Health Inventory: RAND Medical Outcomes Study found in the HSRR dataset",
+      "ground_truth": "The study includes 37 measures that are part of the 116 core measures of functioning and well-being from the Medical Outcomes Study (MOS), a two-year study of patients with chronic conditions.",
+      "evaluation_answer": "The Mental Health Inventory from the RAND Medical Outcomes Study was part of a two-year study conducted on patients with chronic conditions. This instrument consists of 37 measures, which are derived from the core measures of functioning and well-being identified within the Medical Outcomes Study (MOS). The purpose of this inventory is to assess mental health aspects such as anxiety disorders, depressive disorder, and other mental disorders through patient-reported outcomes.\n\nThe Mental Health Inventory was available for use during the two-year period of the study.",
+      "gradio_answer": "The Mental Health Inventory: RAND Medical Outcomes Study is an instrument that includes 37 measures from the 116 core measures of functioning and well-being derived from the Medical Outcomes Study (MOS). The MOS was a two-year study conducted on patients with chronic conditions. Therefore, the purpose of this inventory is to assess mental health aspects such as anxiety disorders, depressive disorder, health surveys, mental disorders, personality assessment, psychometrics, patient-reported outcomes, and PROs.\n\nThe Mental Health Inventory: RAND Medical Outcomes Study has been available since the two-year study conducted by the MOS was completed. Since it is derived from a long-term study, its availability spans over the duration of that study, which lasted for two years.",
+      "accuracy_score": 0.572,
+      "accuracy_range": "0.5-0.7",
+      "precision": 0.2471,
+      "recall": 0.6774,
+      "f1": 0.3621,
+      "faithfulness": 0.7016,
+      "answer_relevance": 0.7213,
+      "latency_sec": 10.1
+    },
+    {
+      "question": "Does the HSRR dataset have any resources related to 'Depressive Disorder'? If so, identify a resource and check if the drug Fluoxetine (mentioned in some HSRR descriptions) has a corresponding entry in the DrugBank vocabulary. Provide its DrugBank ID.",
+      "ground_truth": "The \"Mental Health Inventory: RAND Medical Outcomes Study\" lists \"Depressive Disorder\" in its keywords. Additionally, \"Consumer Reports/Health\" mentions Fluoxetine in its description.",
+      "evaluation_answer": "Not found in context",
+      "gradio_answer": "Not found in context",
+      "accuracy_score": 0.11,
+      "accuracy_range": "0.0-0.5",
+      "precision": 0.25,
+      "recall": 0.0455,
+      "f1": 0.0769,
+      "faithfulness": 0.1165,
+      "answer_relevance": 0.1475,
+      "latency_sec": 4.87
+    },
+    {
+      "question": "What information does the Prescribed Drug Use dataset provide about MEPS?",
+      "ground_truth": "MEPS collects information from survey participants about their prescription drugs and then are asked for permission to collect more detailed information from their pharmacies. At the pharmacies, data are collected on the type, dosage, and payment for each filled prescription. ... Prescribed drug expenditures in MEPS are defined as the sum of payments for care received, including out of pocket payments and payments made by private insurance, Medicaid, Medicare and other sources.",
+      "evaluation_answer": "The Prescribed Drug Use/Events and Expenditures dataset provided by the Agency for Healthcare Research and Quality (AHRQ) through Medical Expenditure Panel Survey (MEPS) collects information from survey participants about their prescription drugs. This includes details on the types of drugs ordered by physicians, as well as expenditures related to these prescriptions. The dataset focuses on providing insights into how much money is spent on prescribed medications in various health care settings and for different demographics. It also covers state and metro area estimates, which can help understand regional variations in prescription drug use and costs.",
+      "gradio_answer": "The Prescribed Drug Use/Events and Expenditures dataset provided by AHRQ (Agency for Healthcare Research and Quality) through Medical Expenditure Panel Survey (MEPS) collects information from survey participants about their prescription drugs. This includes details on the drugs ordered by physicians or other authorized medical personnel, which are then filled by pharmacists for patients. The dataset also asks for permission to gather more detailed information about these prescriptions and expenditures related to prescription drugs.",
+      "accuracy_score": 0.572,
+      "accuracy_range": "0.5-0.7",
+      "precision": 0.2421,
+      "recall": 0.3239,
+      "f1": 0.2771,
+      "faithfulness": 0.835,
+      "answer_relevance": 0.7038,
+      "latency_sec": 9.94
+    },
+    {
+      "question": "What does B.R.I.D.G.E. TO DATA describe?",
+      "ground_truth": "B.R.I.D.G.E. TO DATA is a unique non-profit online reference describing population healthcare databases for use in epidemiology and health outcomes research.",
+      "evaluation_answer": "B.R.I.D.G.E. TO DATA describes a unique non-profit online reference that provides information about population healthcare databases for use in epidemiology and health outcomes research. It allows users to identify key features and compare database profiles, serving as an educational tool for public health research and as a template for health systems planners to design or refine their healthcare data.",
+      "gradio_answer": "B.R.I.D.G.E. TO DATA describes a unique non-profit online reference that identifies and compares key features of population healthcare databases for use in epidemiology and health outcomes research. This tool serves as an educational resource for public health research and as a template for health systems planners to design or refine their healthcare data. It does not contain any proprietary data or actual datasets from any healthcare database.",
+      "accuracy_score": 0.622,
+      "accuracy_range": "0.5-0.7",
+      "precision": 0.322,
+      "recall": 0.9048,
+      "f1": 0.475,
+      "faithfulness": 0.7144,
+      "answer_relevance": 0.725,
+      "latency_sec": 7.15
+    },
+    {
+      "question": "What can you tell me about the age related memory issue?",
+      "ground_truth": "Age-related memory issues are not just about \"forgetting,\" but specifically about decreased memory specificity caused by overactive dopaminergic neurons during the consolidation phase. This suggests that memory generalization is a regulated biological process that can potentially be manipulated or corrected.",
+      "evaluation_answer": "Age-related memory issues involve both declines and changes in how memories are stored and recalled as people get older. The context suggests that these issues often result from a shift in balance between remembering specific details (specificity) and recalling information in broader, more general contexts (generalization). \n\nSpecifically, the studies mentioned indicate that age can affect memory networks and pathways, potentially leading to conditions like post-traumatic stress disorders if not balanced properly. There is also evidence of enhanced generalization and specialization of brain representations of semantic knowledge in healthy aging.\n\nOne study found that older adults have an increased tendency towards generalized recall of memories (generalization), which may be a compensatory mechanism for their declining memory specificity. Another study suggests effects of age on the generalization and incubation of memory, indicating that older individuals might take longer to fully process and integrate new information into existing knowledge networks.\n\nThese findings highlight the complexity of age-related changes in memory, with both positive aspects (such as increased specialization) and negative aspects (",
+      "gradio_answer": "Age-related memory issues involve both decreases in specific memories (memory specificity) and potential overgeneralization or broadening of memories, which can occur with advancing age. This balance between specificity and generalization is crucial for maintaining healthy cognitive function. With aging, there is a decrease in overall memory performance.\n\nResearch indicates that overactivation of memory networks and pathways can lead to conditions such as post-traumatic stress disorder (PTSD) and inappropriate recall of memories. However, the context also suggests that age-related defects may affect long-term memories negatively.\n\nAdditionally, studies have shown enhanced generalization and specialization of brain representations related to semantic knowledge in healthy aging populations. This implies that while older adults might generalize their memory more broadly, they can also specialize their memory by focusing on specific aspects or details within certain contexts.\n\nFor example, a study published in Neuropsychologia (2024; 204:108999) found that enhanced generalization and specialization of brain representations related to semantic",
+      "accuracy_score": 0.509,
+      "accuracy_range": "0.5-0.7",
+      "precision": 0.1012,
+      "recall": 0.425,
+      "f1": 0.1635,
+      "faithfulness": 0.8524,
+      "answer_relevance": 0.6267,
+      "latency_sec": 13.28
+    },
+    {
+      "question": "According to the post-COVID study, which group had poorer health-related quality of life?",
+      "ground_truth": "Older adults, females, and patients with comorbidities had poorer health-related quality of life.",
+      "evaluation_answer": "According to the post-COVID studies summarized in the provided context, patients with comorbidities had a significantly poorer quality of life. Additionally, COVID-19 patients who stayed longer in the Intensive Care Unit (ICU) also had a significantly poorer quality of life. The study suggests that both factors\u2014having comorbidities and having a longer ICU stay duration\u2014are associated with lower health-related quality of life scores as measured by the 5-level EuroQol 5-Dimensional (EQ-5D-5L) instrument.",
+      "gradio_answer": "According to the provided context, patients with comorbidities had a significantly poorer quality of life. Additionally, COVID-19 patients with comorbidities were found to have lower EQ-5D-5 L scores and higher FCV-19S (fear/anxiety of COVID-19) scores, suggesting they experienced worse health-related quality of life.",
+      "accuracy_score": 0.527,
+      "accuracy_range": "0.5-0.7",
+      "precision": 0.1408,
+      "recall": 0.7692,
+      "f1": 0.2381,
+      "faithfulness": 0.7928,
+      "answer_relevance": 0.6468,
+      "latency_sec": 9.24
+    }
+  ]
+}
