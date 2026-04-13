@@ -20,6 +20,8 @@ def load_documents(data_dir):
             continue
 
         ext = file.lower().split(".")[-1]
+        if ext not in ["csv", "xlsx", "xls", "pdf", "txt", "json"]:
+            continue
         print(f"Processing {ext.upper()}: {file}")
 
         try:

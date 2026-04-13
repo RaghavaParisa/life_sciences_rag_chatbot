@@ -12,7 +12,8 @@ from rag import retrieve, generate_answer, init_hybrid
 # =========================
 # ✅ PATH SETUP (FIXED)
 # =========================
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
 print("DATA_DIR:", DATA_DIR)
@@ -31,7 +32,8 @@ except Exception as e:
     print(f"Error loading FAISS: {e}")
     index, documents = None, []
     # Initialize with empty
-    init_hybrid([], None)
+    index, documents = load_or_create_faiss(DATA_DIR)
+    init_hybrid(documents, index)
 
 
 # =========================

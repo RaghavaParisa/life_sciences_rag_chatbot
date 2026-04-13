@@ -1,65 +1,113 @@
 from rank_bm25 import BM25Okapi
 import numpy as np
+import re
+
 
 class HybridSearch:
-    def __init__(self, documents, index, embed_model):
+    def __init__(self, documents, index=None, embed_model=None):
         self.documents = documents
         self.index = index
         self.embed_model = embed_model
 
-        # Prepare BM25 corpus
-        self.texts = [doc["content"] for doc in documents]
+        if not documents:
+            print("⚠️ WARNING: No documents provided to HybridSearch")
+            self.texts = []
+            self.bm25 = None
+            return
+
+        # ✅ Clean + tokenize
+        self.texts = [self._clean_text(doc["content"]) for doc in documents]
         tokenized = [text.split() for text in self.texts]
 
         self.bm25 = BM25Okapi(tokenized)
 
-    def search(self, query, top_k=3):
-        # BM25 scores
+    # -----------------------------
+    # Text Cleaning (IMPORTANT)
+    # -----------------------------
+    def _clean_text(self, text):
+        text = text.lower()
+        text = re.sub(r"[^a-z0-9 ]+", " ", text)
+        text = re.sub(r"\s+", " ", text)
+        return text.strip()
+
+    # -----------------------------
+    # BM25 Search
+    # -----------------------------
+    def bm25_search(self, query, top_k):
+        query = self._clean_text(query)
         tokenized_query = query.split()
-        bm25_scores = self.bm25.get_scores(tokenized_query)
 
-        # ✅ Normalize BM25 scores (0–1)
-        bm25_scores = (bm25_scores - np.min(bm25_scores)) / (
-            np.max(bm25_scores) - np.min(bm25_scores) + 1e-8
-        )
+        scores = self.bm25.get_scores(tokenized_query)
 
-        # FAISS scores
-        q_embed = self.embed_model.encode([query]).astype("float32")
-        faiss_k = 20  # or 30
-        distances, indices = self.index.search(q_embed, faiss_k)
-
-        faiss_scores = np.zeros(len(self.documents))
-
-        raw_scores = []
-        for i, idx in enumerate(indices[0]):
-            score = distances[0][i]  # already cosine similarity
-            faiss_scores[idx] = score
-            raw_scores.append(score)
-
-        # ✅ Normalize FAISS scores (only for retrieved docs)
-        if raw_scores:
-            min_f, max_f = min(raw_scores), max(raw_scores)
-            for i, idx in enumerate(indices[0]):
-                faiss_scores[idx] = (faiss_scores[idx] - min_f) / (max_f - min_f + 1e-8)
-
-        # Combine scores
-        combined = 0.7 * bm25_scores + 0.3 * faiss_scores
-
-        top_indices = np.argsort(combined)[-top_k:][::-1]
-
-        # ✅ ADD DEBUG PRINTS HERE
-        print("\n Retrieved Documents:")
-        for i in top_indices:
-            print("SOURCE:", self.documents[i].get("source", "N/A"))
-            print("CONTENT:", self.documents[i]["content"][:200])
-            print("SCORE:", combined[i])
-            print("-" * 50)
-            
-        print("\n Top 10 FAISS Results:")
-        for i, idx in enumerate(indices[0][:10]):
-            print(self.documents[idx]["source"], "->", distances[0][i])
+        top_indices = np.argsort(scores)[-top_k:][::-1]
 
         results = [self.documents[i] for i in top_indices]
-        scores = [combined[i] for i in top_indices]
+        scores = [float(scores[i]) for i in top_indices]
 
         return results, scores
+
+    # -----------------------------
+    # Vector Search (FAISS)
+    # -----------------------------
+    def vector_search(self, query, top_k):
+        q_embed = self.embed_model.encode([query]).astype("float32")
+
+        distances, indices = self.index.search(q_embed, top_k)
+
+        results = [self.documents[i] for i in indices[0]]
+        scores = [float(distances[0][i]) for i in range(len(indices[0]))]
+
+        return results, scores
+
+    # -----------------------------
+    # Hybrid Search
+    # -----------------------------
+    def search(self, query, top_k=5):
+        bm25_results, bm25_scores = self.bm25_search(query, top_k)
+
+        if self.bm25 is None:
+            print("⚠️ BM25 not initialized — no documents")
+            return [], []
+
+        # ✅ VECTORLESS MODE
+        if self.embed_model is None or self.index is None:
+            return bm25_results, bm25_scores
+
+        vector_results, vector_scores = self.vector_search(query, top_k)
+
+        # -----------------------------
+        # Combine scores
+        # -----------------------------
+        combined_dict = {}
+
+        # BM25 weight
+        for doc, score in zip(bm25_results, bm25_scores):
+            key = doc["content"]
+            combined_dict[key] = 0.7 * score
+
+        # Vector weight
+        for doc, score in zip(vector_results, vector_scores):
+            key = doc["content"]
+            if key in combined_dict:
+                combined_dict[key] += 0.3 * score
+            else:
+                combined_dict[key] = 0.3 * score
+
+        # Sort by score
+        sorted_docs = sorted(
+            combined_dict.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:top_k]
+
+        final_results = []
+        final_scores = []
+
+        for content, score in sorted_docs:
+            for doc in self.documents:
+                if doc["content"] == content:
+                    final_results.append(doc)
+                    final_scores.append(float(score))
+                    break
+
+        return final_results, final_scores
