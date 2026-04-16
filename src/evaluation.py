@@ -298,7 +298,7 @@ def evaluate():
             "bertscore": round(bert_f1, 3),
             "faithfulness": round(faithfulness, 3),
             "relevance": round(relevance, 3),
-            "groundedness": round(groundedness, 3),
+            "groundedness": round(groundness, 3),
             "llm_score": round(llm_score, 3),
             "latency": latency,
         })

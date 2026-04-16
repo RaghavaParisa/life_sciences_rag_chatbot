@@ -194,46 +194,6 @@ def login_page():
                     st.session_state.logging_in = False
                     st.error("❌ Invalid credentials")
 
-# def login_page():
-#     st.title("🔐 Login")
-
-#     col1, col2, col3 = st.columns([1, 2, 1])
-
-#     with col2:
-#         username = st.text_input("Username")
-#         password = st.text_input("Password", type="password")
-
-#         if "logging_in" not in st.session_state:
-#             st.session_state.logging_in = False
-
-#         login_clicked = st.button(
-#             "Login",
-#             disabled=st.session_state.logging_in
-#         )
-
-#         if login_clicked:
-#             st.session_state.logging_in = True
-
-#             # 🔥 Loader
-#             with st.spinner("🔐 Authenticating... Please wait"):
-#                 success, role, token = authenticate(username, password)
-
-#             # ✅ 👉 PLACE YOUR BLOCK HERE
-#             if success:
-#                 st.session_state.token = token
-#                 st.session_state.role = role
-#                 st.session_state.logging_in = False
-
-#                 # st.success("✅ Login successful")
-#                 st.toast("Login successful!", icon="✅")
-
-#                 time.sleep(0.3)  # smooth transition
-#                 st.rerun()
-
-#             else:
-#                 st.session_state.logging_in = False
-#                 st.error("❌ Invalid credentials")
-
     # -----------------------------
     # PHASE 2 → SHOW SPINNER
     # -----------------------------
@@ -258,21 +218,6 @@ def login_page():
                 else:
                     st.session_state.logging_in = False
                     st.error("❌ Invalid credentials")
-# -----------------------------
-# SIDEBAR
-# -----------------------------
-# def sidebar():
-#     st.sidebar.title("🧬 Dashboard")
-#     st.sidebar.markdown(f"**Role:** {st.session_state.role}")
-
-
-    # if st.sidebar.button("Logout"):
-    #     st.session_state.token = None
-    #     st.session_state.role = None
-    #     st.session_state.chat_history = []
-    #     st.session_state.custom_docs = False
-    #     st.rerun()
-
 
 # -----------------------------
 # FILE UPLOAD
@@ -461,145 +406,6 @@ def chat_section():
             col4.metric("Score", round(judge.get("final_score", 0), 2))
 
         st.markdown("---")
-# def chat_section():
-#     st.subheader("💬 Ask Questions")
-
-#     # -----------------------------
-#     # SESSION FLAGS
-#     # -----------------------------
-#     if "is_processing" not in st.session_state:
-#         st.session_state.is_processing = False
-
-#     if "current_query" not in st.session_state:
-#         st.session_state.current_query = ""
-
-#     # -----------------------------
-#     # INPUT
-#     # -----------------------------
-#     query = st.text_input(
-#         "🔍 Ask a life sciences question...",
-#         placeholder="e.g. What is MEPS dataset?",
-#         disabled=st.session_state.is_processing  # 🔥 disable input
-#     )
-
-#     # -----------------------------
-#     # BUTTON
-#     # -----------------------------
-#     ask_clicked = st.button(
-#         "Ask",
-#         disabled=st.session_state.is_processing  # 🔥 disable button
-#     )
-
-#     # -----------------------------
-#     # TRIGGER PROCESS
-#     # -----------------------------
-#     if ask_clicked:
-#         if not query.strip():
-#             st.warning("Enter a question")
-#             return
-
-#         # 🔥 Lock UI instantly
-#         st.session_state.is_processing = True
-#         st.session_state.current_query = query
-#         st.rerun()
-
-#     # -----------------------------
-#     # PROCESSING BLOCK
-#     # -----------------------------
-#     if st.session_state.is_processing:
-#         query = st.session_state.current_query
-
-#         # 🔥 Show UI immediately
-#         status_box = st.empty()
-
-#         with status_box.container():
-#             with st.status("🔄 Processing your query...", expanded=True) as status:
-#                 progress = st.progress(0)
-
-#                 start = time.time()
-
-#                 try:
-#                     # ✅ Ensure hybrid init
-#                     if "documents" not in st.session_state:
-#                         index, documents = load_or_create_faiss(DATA_DIR)
-#                         st.session_state.documents = documents
-#                         init_hybrid(documents, index)
-#                     else:
-#                         if st.session_state.custom_docs:
-#                             init_hybrid(st.session_state.documents, index=None)
-#                         else:
-#                             index, _ = load_or_create_faiss(DATA_DIR)
-#                             init_hybrid(st.session_state.documents, index)
-
-#                     st.write("📚 Retrieving relevant documents...")
-#                     contexts, citations, _ = retrieve(query)
-#                     progress.progress(30)
-
-#                     st.write("🧠 Generating answer using LLM...")
-#                     answer = generate_answer(query, contexts, citations)
-#                     progress.progress(70)
-
-#                     st.write("📊 Evaluating answer quality...")
-#                     judge = llm_judge(query, answer)
-#                     progress.progress(100)
-
-#                     latency = round(time.time() - start, 2)
-
-#                     status.update(label="✅ Completed", state="complete")
-
-#                     # Save result
-#                     st.session_state.chat_history.append({
-#                         "query": query,
-#                         "answer": answer,
-#                         "latency": latency,
-#                         "judge": judge
-#                     })
-
-#                 except Exception as e:
-#                     st.error(f"Error: {str(e)}")
-
-#         # 🔥 Unlock UI AFTER processing
-#         st.session_state.is_processing = False
-#         st.session_state.current_query = ""
-
-#         # 🔥 Rerun to refresh UI cleanly
-#         st.rerun()
-
-#     # -----------------------------
-#     # DISPLAY CHAT
-#     # -----------------------------
-#     for chat in reversed(st.session_state.chat_history):
-#         st.markdown(f"### 🧑 {chat['query']}")
-#         st.markdown(f"**🤖 Answer:** {chat['answer']}")
-#         st.caption(f"⏱ {chat['latency']} sec")
-
-#         judge = chat.get("judge", {})
-
-#         if judge:
-#             st.markdown("#### 🧠 Evaluation")
-
-#             col1, col2, col3, col4 = st.columns(4)
-
-#             col1.metric("Faithfulness", round(judge.get("faithfulness", 0), 2))
-#             col2.metric("Relevance", round(judge.get("relevance", 0), 2))
-#             col3.metric("Correctness", round(judge.get("correctness", 0), 2))
-#             col4.metric("Score", round(judge.get("final_score", 0), 2))
-
-#             verdict = judge.get("verdict", "")
-
-#             if verdict == "good":
-#                 st.success("✅ Good Answer")
-#             elif verdict == "partial":
-#                 st.warning("⚠️ Partial Answer")
-#             elif verdict == "poor":
-#                 st.error("❌ Poor Answer")
-#             elif verdict == "error":
-#                 st.warning("⚠️ Evaluation failed")
-                        
-#         if judge.get("verdict") == "error":
-#             st.warning("⚠️ Evaluation failed (invalid LLM output)")
-
-#         st.markdown("---")
 
 # -----------------------------
 # ADMIN PANEL
@@ -614,52 +420,6 @@ def admin_panel():
         init_rag_once.clear()
         init_rag_once()
         st.success("Reloaded base dataset!")
-
-
-# -----------------------------
-# MAIN APP
-# -----------------------------
-# def main_app():
-#     sidebar()
-
-#     st.title("🧬 Life Sciences RAG Assistant")
-
-#     # ✅ Initialize only once
-#     if not st.session_state.custom_docs:
-#         if "documents" not in st.session_state:
-#             index, documents = load_or_create_faiss(DATA_DIR)
-#             st.session_state.documents = documents
-#             init_hybrid(documents, index)
-
-#     tab1, tab2 = st.tabs(["💬 Chat", "📂 Upload"])
-
-#     with tab1:
-#         chat_section()
-
-#     with tab2:
-#         upload_section()
-
-#     admin_panel()
-
-
-# # -----------------------------
-# # ROUTING
-# # -----------------------------
-# def main():
-#     if st.session_state.token:
-#         user, role = verify_token(st.session_state.token)
-
-#         if user:
-#             main_app()
-#         else:
-#             st.warning("Session expired")
-#             login_page()
-#     else:
-#         login_page()
-
-
-# if __name__ == "__main__":
-#     main()
 
 
 def app_main():
@@ -679,14 +439,6 @@ def app_main():
             st.session_state.chat_history = []
             st.session_state.custom_docs = False
             st.rerun()
-
-    # st.title("🧬 Life Sciences RAG Assistant")
-
-    # if not st.session_state.custom_docs:
-    #     if "documents" not in st.session_state:
-    #         index, documents = load_or_create_faiss(DATA_DIR)
-    #         st.session_state.documents = documents
-    #         init_hybrid(documents, index)
 
     tab1, tab2 = st.tabs(["💬 Chat", "📂 Upload"])
 
