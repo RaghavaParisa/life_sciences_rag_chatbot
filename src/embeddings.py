@@ -26,14 +26,14 @@ print("DEBUG MODEL PATH:", MODEL_PATH)  # 👈 VERY IMPORTANT
 
 model = SentenceTransformer(MODEL_PATH)
 
-def is_data_changed(current_map):
-    if not os.path.exists(META_PATH):
-        return True
+# def is_data_changed(current_map):
+#     if not os.path.exists(META_PATH):
+#         return True
 
-    with open(META_PATH, "rb") as f:
-        old_map = pickle.load(f)
+#     with open(META_PATH, "rb") as f:
+#         old_map = pickle.load(f)
 
-    return old_map != current_map
+#     return old_map != current_map
 
 
 def is_model_changed():
@@ -43,7 +43,7 @@ def is_model_changed():
     with open(MODEL_META_PATH, "rb") as f:
         meta = pickle.load(f)
 
-    return meta.get("model") != MODEL_NAME
+    return meta.get("model_path") != MODEL_PATH
 
 
 def build_faiss_index(embeddings):
@@ -58,6 +58,7 @@ def build_faiss_index(embeddings):
     return index
 
 def load_or_create_faiss(data_dir):
+    model_changed = is_model_changed()
     documents, current_map = load_documents(data_dir)
 
     os.makedirs(EMBEDDINGS_DIR, exist_ok=True)
@@ -86,8 +87,12 @@ def load_or_create_faiss(data_dir):
     # ========================
     # CASE 1: First time build
     # ========================
-    if not os.path.exists(INDEX_PATH) or not os.path.exists(DOCS_PATH):
-        print("⚡ First-time FAISS index build...")
+    if (
+    not os.path.exists(INDEX_PATH)
+    or not os.path.exists(DOCS_PATH)
+    or model_changed
+):
+        print("⚡ Rebuilding FAISS index (first time / model changed)...")
 
         filtered_docs = []
         texts = []
@@ -117,6 +122,9 @@ def load_or_create_faiss(data_dir):
 
         with open(META_PATH, "wb") as f:
             pickle.dump(current_map, f)
+        
+        with open(MODEL_META_PATH, "wb") as f:
+            pickle.dump({"model_path": MODEL_PATH}, f)
 
         print("FAISS index created")
         return index, filtered_docs
@@ -154,6 +162,9 @@ def load_or_create_faiss(data_dir):
         with open(META_PATH, "wb") as f:
             pickle.dump(current_map, f)
 
+        with open(MODEL_META_PATH, "wb") as f:
+            pickle.dump({"model_path": MODEL_PATH}, f)
+
         print("Rebuilt FAISS index after modification")
         return index, filtered_docs
 
@@ -171,9 +182,12 @@ def load_or_create_faiss(data_dir):
 
         new_docs = []
         new_texts = []
+        
 
+        new_files_set = set(os.path.basename(f) for f in new_files)
         for doc in documents:
-            if doc.get("source") in new_files:
+            source_name = os.path.basename(doc.get("source", ""))
+            if source_name in new_files_set:
                 content = str(doc.get("content", "")).strip()
                 if content:
                     new_docs.append(doc)
@@ -198,6 +212,9 @@ def load_or_create_faiss(data_dir):
 
             with open(META_PATH, "wb") as f:
                 pickle.dump(current_map, f)
+                
+            with open(MODEL_META_PATH, "wb") as f:
+                pickle.dump({"model_path": MODEL_PATH}, f)
 
             print("Incremental update complete")
             return index, updated_docs
