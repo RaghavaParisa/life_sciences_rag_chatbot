@@ -2,7 +2,7 @@ numpy==1.24.3
 torch==2.0.1
 transformers==4.21.0
 sentence-transformers==2.2.2
-gradio==3.50.2
+streamlit==1.29.0
 faiss-cpu==1.7.4
 pandas==2.0.3
 PyPDF2==3.0.1
@@ -10,3 +10,4 @@ langchain==0.0.354
 rank-bm25==0.2.2
 PyJWT==2.8.0
 requests==2.31.0
+bert-score-0.3.13

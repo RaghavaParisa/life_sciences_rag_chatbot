@@ -20,21 +20,10 @@ MODEL_PATH = os.path.abspath(
 )
 print("BASE_DIR:", BASE_DIR)
 print("MODEL_PATH:", MODEL_PATH)
-# MODEL_PATH = os.path.join(BASE_DIR, "model", "all-MiniLM-L6-v2")
 
 print("DEBUG MODEL PATH:", MODEL_PATH)  # 👈 VERY IMPORTANT
 
 model = SentenceTransformer(MODEL_PATH)
-
-# def is_data_changed(current_map):
-#     if not os.path.exists(META_PATH):
-#         return True
-
-#     with open(META_PATH, "rb") as f:
-#         old_map = pickle.load(f)
-
-#     return old_map != current_map
-
 
 def is_model_changed():
     if not os.path.exists(MODEL_META_PATH):
