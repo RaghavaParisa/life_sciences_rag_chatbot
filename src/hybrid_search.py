@@ -22,7 +22,7 @@ class HybridSearch:
         self.bm25 = BM25Okapi(tokenized)
 
     # -----------------------------
-    # Text Cleaning (IMPORTANT)
+    # Text Cleaning
     # -----------------------------
     def _clean_text(self, text):
         text = text.lower()
@@ -34,6 +34,9 @@ class HybridSearch:
     # BM25 Search
     # -----------------------------
     def bm25_search(self, query, top_k):
+        if self.bm25 is None:
+            return [], []
+
         query = self._clean_text(query)
         tokenized_query = query.split()
 
@@ -47,7 +50,7 @@ class HybridSearch:
         return results, scores
 
     # -----------------------------
-    # Vector Search (FAISS)
+    # Vector Search
     # -----------------------------
     def vector_search(self, query, top_k):
         q_embed = self.embed_model.encode([query]).astype("float32")
@@ -63,11 +66,13 @@ class HybridSearch:
     # Hybrid Search
     # -----------------------------
     def search(self, query, top_k=5):
-        bm25_results, bm25_scores = self.bm25_search(query, top_k)
 
+        # ✅ FIX 1: check BM25 first
         if self.bm25 is None:
             print("⚠️ BM25 not initialized — no documents")
             return [], []
+
+        bm25_results, bm25_scores = self.bm25_search(query, top_k)
 
         # ✅ VECTORLESS MODE
         if self.embed_model is None or self.index is None:
@@ -82,8 +87,7 @@ class HybridSearch:
 
         # BM25 weight
         for doc, score in zip(bm25_results, bm25_scores):
-            key = doc["content"]
-            combined_dict[key] = 0.7 * score
+            combined_dict[doc["content"]] = 0.7 * score
 
         # Vector weight
         for doc, score in zip(vector_results, vector_scores):
@@ -93,7 +97,7 @@ class HybridSearch:
             else:
                 combined_dict[key] = 0.3 * score
 
-        # Sort by score
+        # Sort
         sorted_docs = sorted(
             combined_dict.items(),
             key=lambda x: x[1],

@@ -5,15 +5,26 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 from ingestion import load_documents
 
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
 EMBEDDINGS_DIR = "embeddings"
 INDEX_PATH = os.path.join(EMBEDDINGS_DIR, "faiss.index")
 DOCS_PATH = os.path.join(EMBEDDINGS_DIR, "documents.pkl")
 META_PATH = os.path.join(EMBEDDINGS_DIR, "metadata.pkl")
 MODEL_META_PATH = os.path.join(EMBEDDINGS_DIR, "model_meta.pkl")
 
-MODEL_NAME = "all-MiniLM-L6-v2"
-model = SentenceTransformer(MODEL_NAME)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
+MODEL_PATH = os.path.abspath(
+    os.path.join(BASE_DIR, "..", "model", "all-MiniLM-L6-v2")
+)
+print("BASE_DIR:", BASE_DIR)
+print("MODEL_PATH:", MODEL_PATH)
+# MODEL_PATH = os.path.join(BASE_DIR, "model", "all-MiniLM-L6-v2")
+
+print("DEBUG MODEL PATH:", MODEL_PATH)  # 👈 VERY IMPORTANT
+
+model = SentenceTransformer(MODEL_PATH)
 
 def is_data_changed(current_map):
     if not os.path.exists(META_PATH):
@@ -45,6 +56,7 @@ def build_faiss_index(embeddings):
     index.add(embeddings)
 
     return index
+
 def load_or_create_faiss(data_dir):
     documents, current_map = load_documents(data_dir)
 

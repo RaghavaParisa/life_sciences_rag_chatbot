@@ -1,0 +1,148 @@
+{
+  "results": [
+    {
+      "question": "What are the synonyms and the primary DrugBank ID for the drug Lepirudin?",
+      "answer": "The synonyms for Lepirudin are [Leu1, Thr2]-63-desulfohirudin, Desulfatohirudin, Hirudin variant-1, Lepirudin, and Lepirudin recombinant. The primary DrugBank ID for Lepirudin is DB00001.",
+      "ground_truth": "[Leu1, Thr2]-63-desulfohirudin, Desulfatohirudin, Hirudin variant-1, Lepirudin, Lepirudin recombinant, R-hirudin",
+      "accuracy": 0.802,
+      "bertscore": 0.926,
+      "faithfulness": 0.546,
+      "relevance": 0.764,
+      "hallucination": 0.5,
+      "llm_score": 1.0,
+      "latency": 11.36
+    },
+    {
+      "question": "Describe the purpose and the years of availability for the Mental Health Inventory: RAND Medical Outcomes Study found in the HSRR dataset",
+      "answer": "The Mental Health Inventory: RAND Medical Outcomes Study is part of the 116 core measures from the Medical Outcomes Study (MOS), a two-year study of patients with chronic conditions. The purpose of this inventory was to develop a brief, self-administered social support survey for patients in the MOS, which is easy to administer to chronically ill patients and has short items.\n\nThe Mental Health Inventory: RAND Medical Outcomes Study is available from 1987 to 2000 based on the context provided.",
+      "ground_truth": "The study includes 37 measures that are part of the 116 core measures of functioning and well-being from the Medical Outcomes Study (MOS), a two-year study of patients with chronic conditions.",
+      "accuracy": 0.715,
+      "bertscore": 0.91,
+      "faithfulness": 0.558,
+      "relevance": 0.702,
+      "hallucination": 0.667,
+      "llm_score": 0.633,
+      "latency": 9.51
+    },
+    {
+      "question": "Provide the DrugBank ID, common name, and one synonym for the entry starting with DB15629.",
+      "answer": "DrugBank ID: DB15629 | Common name: Garadacimab | Synonyms: Garadacimab, Immunoglobulin G4, anti-(human blood-coagulation factor viia) (human monoclonal CSL312 gamma4-chain), disulfide with human monoclonal CSL312 lambda-chain, dimer",
+      "ground_truth": "DrugBank ID: DB15629, Common Name: Garadacimab, Synonym: Immunoglobulin G4, anti-human blood-coagulation factor viia (human monoclonal CSL312 gamma4-chain, disulfide with human monoclonal CSL312 lambda-chain, dimer)",
+      "accuracy": 0.848,
+      "bertscore": 0.955,
+      "faithfulness": 0.721,
+      "relevance": 0.587,
+      "hallucination": 1.0,
+      "llm_score": 0.917,
+      "latency": 7.55
+    },
+    {
+      "question": "What information does the Prescribed Drug Use dataset provide about MEPS?",
+      "answer": "The Prescribed Drug Use dataset provided by MEPS (Medical Expenditures Panel Survey) includes information on the use of prescribed drugs, including type, dosage, and payment for each filled prescription. It also covers expenditures related to these medications, summing up payments from various sources such as out-of-pocket expenses, private insurance, Medicaid, Medicare, and other sources. The dataset is used to understand trends in prescription drug usage over time and the magnitude of issues affecting individuals.",
+      "ground_truth": "MEPS collects information from survey participants about their prescription drugs and then are asked for permission to collect more detailed information from their pharmacies. At the pharmacies, data are collected on the type, dosage, and payment for each filled prescription. ... Prescribed drug expenditures in MEPS are defined as the sum of payments for care received, including out of pocket payments and payments made by private insurance, Medicaid, Medicare and other sources.",
+      "accuracy": 0.849,
+      "bertscore": 0.902,
+      "faithfulness": 0.676,
+      "relevance": 0.787,
+      "hallucination": 1.0,
+      "llm_score": 0.9,
+      "latency": 9.02
+    },
+    {
+      "question": "What does B.R.I.D.G.E. TO DATA describe?",
+      "answer": "B.R.I.D.G.E. TO DATA describes population healthcare databases for use in epidemiology and health outcomes research. It is a web-accessible subscription resource that provides in-depth information on database profiles, continuously updated to be based on the most relevant and current data. The platform includes search, report, edit, and comparison functions, as well as contact information for database managers and details about data access costs and formats.",
+      "ground_truth": "B.R.I.D.G.E. TO DATA is a unique non-profit online reference describing population healthcare databases for use in epidemiology and health outcomes research.",
+      "accuracy": 0.8,
+      "bertscore": 0.91,
+      "faithfulness": 0.818,
+      "relevance": 0.682,
+      "hallucination": 0.111,
+      "llm_score": 1.0,
+      "latency": 8.66
+    },
+    {
+      "question": "What is the pooled mean EQ-5D-5L utility score for post-COVID HRQoL in India from the meta-analysis?",
+      "answer": "The pooled mean EQ-5D-5L utility score for post-COVID HRQoL in India from the meta-analysis is 0.98 \u00b1 0.05, as reported by Elumalai et al [35].",
+      "ground_truth": "The pooled mean EQ-5D-5L utility score for post-COVID HRQoL in India from the meta-analysis was 0.65 (95% CI: 0.58-0.72).",
+      "accuracy": 0.728,
+      "bertscore": 0.938,
+      "faithfulness": 0.734,
+      "relevance": 0.945,
+      "hallucination": 0.333,
+      "llm_score": 0.5,
+      "latency": 7.86
+    },
+    {
+      "question": "According to the post-COVID study, which group had poorer health-related quality of life?",
+      "answer": "COVID-19 patients with comorbidities had a significantly poorer quality of life.",
+      "ground_truth": "Older adults, females, and patients with comorbidities had poorer health-related quality of life.",
+      "accuracy": 0.845,
+      "bertscore": 0.923,
+      "faithfulness": 0.653,
+      "relevance": 0.725,
+      "hallucination": 1.0,
+      "llm_score": 0.917,
+      "latency": 5.59
+    },
+    {
+      "question": "Name three determinants consistently associated with impaired post-COVID HRQoL.",
+      "answer": "Three determinants consistently associated with impaired post-COVID HRQoL are:\n\n1. Older age (\u2265 60 years)\n2. Female sex\n3. Comorbidities",
+      "ground_truth": "Older age, female sex, and presence of comorbidities were consistently associated with impaired post-COVID HRQoL.",
+      "accuracy": 0.841,
+      "bertscore": 0.904,
+      "faithfulness": 0.796,
+      "relevance": 0.903,
+      "hallucination": 0.25,
+      "llm_score": 1.0,
+      "latency": 6.84
+    },
+    {
+      "question": " QODD assesses the quality of dying and death; versions include QODD - Version 1.0 (Significant Other after Death Interview) and QODD - Versions 3.2a (Family Member/Friend and Nursing After Death Self-Administered Questionnaires)",
+      "answer": "QODD assesses the quality of dying and death, with versions including:\n\n- **QODD - Version 1.0**: \n  - Significant Other after Death Interview\n\n- **QODD - Versions 3.2a**:\n  - Family Member/Friend After Death Self-Administered Questionnaire\n  - Nursing After Death Self-Administered Questionnaire",
+      "ground_truth": "The Quality of Dying and Death (QODD) is a tool used to assess the quality of dying and death. It has different versions, including QODD - Version 1.0 (Significant Other after Death Interview) and QODD - Versions 3.2a (Family Member/Friend and Nursing After Death Self-Administered Questionnaires).",
+      "accuracy": 0.891,
+      "bertscore": 0.901,
+      "faithfulness": 0.801,
+      "relevance": 0.96,
+      "hallucination": 0.667,
+      "llm_score": 1.0,
+      "latency": 9.7
+    },
+    {
+      "question": "Describe the EuroQol (EQ-5D) instrument and its primary purpose as listed in the HSRR data",
+      "answer": "The EuroQol (EQ-5D) is an instrument designed for self-completion by respondents. It is ideally suited for use in postal surveys, clinics, and face-to-face interviews. The EQ-5D consists of a 3-level, 5-dimensional format that takes only a few minutes to complete. \n\nIts primary purpose includes providing descriptive profiles and a single index value for health status. Originally designed to complement other instruments, it is now increasingly used as a \"stand-alone\" measure.\n\nThe instrument covers five domains: mobility, self-care, usual activities, pain/discomfort, and anxiety/depression. It is available in different language versions exclusively through the EuroQol Business Management Office.",
+      "ground_truth": "The EuroQol (EQ-5D) is a standardized instrument used to measure health-related quality of life. Its primary purpose is to assess the health state of individuals across five dimensions: mobility, self-care, usual activities, pain/discomfort, and anxiety/depression.",
+      "accuracy": 0.79,
+      "bertscore": 0.9,
+      "faithfulness": 0.791,
+      "relevance": 0.751,
+      "hallucination": 0.143,
+      "llm_score": 0.94,
+      "latency": 12.26
+    },
+    {
+      "question": "What causes age-related memory generalization in Drosophila according to the study?",
+      "answer": "Aberrant activation of PPL1 dopaminergic neurons during consolidation causes memory generalization in aged flies.",
+      "ground_truth": "Aberrant dopaminergic activity during memory consolidation; increased dopamine signaling from inability to inhibit glutamatergic activation leads to enhanced D2 receptor activation on engram cells.",
+      "accuracy": 0.837,
+      "bertscore": 0.899,
+      "faithfulness": 0.685,
+      "relevance": 0.663,
+      "hallucination": 1.0,
+      "llm_score": 0.923,
+      "latency": 5.99
+    },
+    {
+      "question": " How do engram cells differ in reactivation between young and aged flies after spaced training?",
+      "answer": "In young flies, pERK signals overlap significantly with GFP signals observed in putative engram cells activated during memory recall tests 24 hours after spaced training. In contrast, in aged flies, inappropriate reactivation of engrams is associated with memory generalization.",
+      "ground_truth": " In young flies, engram cells (c-Fos-positive) reactivate specifically with shock-paired odor (CS+); in aged flies, they reactivate similarly with both CS+ and unpaired/novel odors (CS-, novel), leading to memory generalization.",
+      "accuracy": 0.853,
+      "bertscore": 0.871,
+      "faithfulness": 0.867,
+      "relevance": 0.733,
+      "hallucination": 1.0,
+      "llm_score": 0.833,
+      "latency": 7.61
+    }
+  ]
+}

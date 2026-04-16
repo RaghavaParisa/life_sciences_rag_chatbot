@@ -4,22 +4,32 @@ import json
 import time
 from typing import List
 import numpy as np
+import requests
 
 from embeddings import load_or_create_faiss
 from rag import init_hybrid, retrieve, generate_answer
 from sentence_transformers import SentenceTransformer
+from bert_score import score as bertscore_score
 
+# -----------------------------
+# ENV
+# -----------------------------
+os.environ["HF_HUB_DISABLE_TELEMETRY"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
+# -----------------------------
+# PATHS
+# -----------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data")
-REPORT_PATH = os.path.join(BASE_DIR, "evaluation_report.txt")
-JSON_REPORT_PATH = os.path.join(BASE_DIR, "evaluation_report.json")
 
-USE_GRADIO_ANSWERS = True
+MODEL_PATH = os.path.join(BASE_DIR, "..", "model", "all-MiniLM-L6-v2")
+embed_model = SentenceTransformer(MODEL_PATH)
+
+DATA_DIR = os.path.join(BASE_DIR, "..", "data")
+JSON_REPORT_PATH = os.path.join(BASE_DIR, "evaluation_report.json")
 
 MODEL_NAME = "qwen2.5:3b"
 OLLAMA_URL = "http://localhost:11434/api/generate"
-
-embed_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 EVAL_TASKS = [
     {
@@ -78,18 +88,18 @@ EVAL_TASKS = [
         "expected_sources": ["age_memory.pdf"],
     },
     {
-        "quesion": " How do engram cells differ in reactivation between young and aged flies after spaced training?",
+        "question": " How do engram cells differ in reactivation between young and aged flies after spaced training?",
         "ground_truth": " In young flies, engram cells (c-Fos-positive) reactivate specifically with shock-paired odor (CS+); in aged flies, they reactivate similarly with both CS+ and unpaired/novel odors (CS-, novel), leading to memory generalization.",
         "expected_sources": ["age_memory.pdf"],
     },
 ]
+
+
 # -----------------------------
-# TEXT UTILS
+# UTILS
 # -----------------------------
 def clean_answer(text: str) -> str:
-    if not text:
-        return ""
-    return text.split("Sources:")[0].strip()
+    return text.split("Sources:")[0].strip() if text else ""
 
 
 def normalize_text(text: str) -> str:
@@ -98,104 +108,116 @@ def normalize_text(text: str) -> str:
     return re.sub(r"[^a-z0-9 ]+", "", text).strip()
 
 
-def tokenize(text: str) -> List[str]:
-    return normalize_text(text).split()
+# -----------------------------
+# BERTScore
+# -----------------------------
+def compute_bertscore(prediction, reference):
+    try:
+        P, R, F1 = bertscore_score([prediction], [reference], lang="en")
+        return float(F1[0])
+    except:
+        return 0.0
 
 
 # -----------------------------
-# METRICS
+# EMBEDDING SIM
 # -----------------------------
-def compute_token_metrics(prediction: str, reference: str):
-    pred_tokens = tokenize(prediction)
-    ref_tokens = tokenize(reference)
-
-    if not pred_tokens or not ref_tokens:
-        return 0.0, 0.0, 0.0
-
-    overlap = set(pred_tokens) & set(ref_tokens)
-
-    precision = len(overlap) / len(pred_tokens)
-    recall = len(overlap) / len(ref_tokens)
-
-    f1 = 0.0
-    if precision + recall > 0:
-        f1 = 2 * precision * recall / (precision + recall)
-
-    return precision, recall, f1
-
-
 def cosine_sim(a, b):
     return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
 
 
-def compute_faithfulness(answer: str, contexts: List[str]) -> float:
-    if not answer.strip() or not contexts:
+# -----------------------------
+# FAITHFULNESS
+# -----------------------------
+def compute_faithfulness(answer, contexts):
+    if not answer or not contexts:
         return 0.0
 
-    context_text = " ".join(contexts)
+    context_text = " ".join(contexts[:3])
 
-    answer_emb = embed_model.encode([answer])[0]
-    context_emb = embed_model.encode([context_text])[0]
+    a = embed_model.encode([answer])[0]
+    c = embed_model.encode([context_text])[0]
 
-    return cosine_sim(answer_emb, context_emb)
-
-
-def compute_answer_relevance(answer: str, question: str) -> float:
-    if not answer.strip():
-        return 0.0
-
-    answer_emb = embed_model.encode([answer])[0]
-    question_emb = embed_model.encode([question])[0]
-
-    return cosine_sim(answer_emb, question_emb)
+    return cosine_sim(a, c)
 
 
 # -----------------------------
-# LLM JUDGE (RAGAS STYLE)
+# RELEVANCE
+# -----------------------------
+def compute_relevance(answer, question):
+    if not answer:
+        return 0.0
+
+    a = embed_model.encode([answer])[0]
+    q = embed_model.encode([question])[0]
+
+    a = a / np.linalg.norm(a)
+    q = q / np.linalg.norm(q)
+
+    return float(np.dot(a, q))
+
+
+# -----------------------------
+# 🚨 HALLUCINATION SCORE (NEW)
+# -----------------------------
+def compute_groundedness(answer: str, contexts: List[str]):
+    """
+    Returns:
+        1.0 → fully grounded (no hallucination)
+        0.0 → fully hallucinated
+    """
+    if not answer or not contexts:
+        return 0.0
+
+    context_text = " ".join(contexts[:3])
+
+    answer_sentences = re.split(r"[.?!]", answer)
+    answer_sentences = [s.strip() for s in answer_sentences if s.strip()]
+
+    grounded_count = 0
+
+    context_emb = embed_model.encode([context_text])[0]
+
+    for sent in answer_sentences:
+        sent_emb = embed_model.encode([sent])[0]
+        sim = cosine_sim(sent_emb, context_emb)
+
+        if sim > 0.55:  # threshold
+            grounded_count += 1
+
+    return grounded_count / len(answer_sentences)
+
+
+# -----------------------------
+# LLM JUDGE
 # -----------------------------
 def llm_judge(question, answer, ground_truth, context):
     prompt = f"""
-You are an expert evaluator.
+Evaluate answer quality.
 
-Evaluate the answer based on:
-1. Correctness (0-1)
-2. Completeness (0-1)
-3. Groundedness (0-1)
-
-Return JSON only:
+Return JSON:
 {{
-  "correctness": float,
-  "completeness": float,
-  "groundedness": float
+"correctness": float,
+"completeness": float,
+"groundedness": float
 }}
 
-Question:
-{question}
-
-Ground Truth:
-{ground_truth}
-
-Context:
-{context}
-
-Answer:
-{answer}
+Q: {question}
+GT: {ground_truth}
+CTX: {context}
+ANS: {answer}
 """
 
     try:
-        response = requests.post(
+        res = requests.post(
             OLLAMA_URL,
-            json={
-                "model": MODEL_NAME,
-                "prompt": prompt,
-                "stream": False
-            }
+            json={"model": MODEL_NAME, "prompt": prompt, "stream": False},
+            timeout=60
         )
 
-        result = response.json()["response"]
+        txt = res.json()["response"]
+        match = re.search(r"\{.*\}", txt, re.DOTALL)
 
-        # Extract JSON safely
-        match = re.search(r"\{.*\}", result, re.DOTALL)
         if match:
             return json.loads(match.group())
 
@@ -206,78 +228,40 @@ Answer:
 
 
 # -----------------------------
-# GRADIO ANSWER
-# -----------------------------
-def get_gradio_answer(question):
-    try:
-        contexts, citations, _ = retrieve(question)
-        return generate_answer(question, contexts, citations)
-    except Exception as e:
-        return f"Error: {str(e)}"
-
-
-# -----------------------------
-# EVALUATION
+# MAIN EVALUATION
 # -----------------------------
 def evaluate():
     index, documents = load_or_create_faiss(DATA_DIR)
     init_hybrid(documents, index)
 
     results = []
-    totals = {
-        "accuracy": 0,
-        "f1": 0,
-        "faithfulness": 0,
-        "answer_relevance": 0,
-        "llm_score": 0,
-    }
 
     for task in EVAL_TASKS:
         question = task["question"]
         ground_truth = task["ground_truth"]
 
-        print("\n==============================")
-        print("QUESTION:", question)
+        print("\n======================")
+        print("Q:", question)
 
-        # Generate answer
         start = time.time()
+
         contexts, citations, _ = retrieve(question)
-        eval_raw = generate_answer(question, contexts, citations)
+        raw = generate_answer(question, contexts, citations)
+        answer = clean_answer(raw)
+
         latency = round(time.time() - start, 2)
 
-        eval_answer = clean_answer(eval_raw)
-
-        # Gradio answer
-        gradio_raw = get_gradio_answer(question)
-        gradio_answer = clean_answer(gradio_raw)
-
-        # Metrics
-        precision, recall, f1 = compute_token_metrics(eval_answer, ground_truth)
-        faithfulness = compute_faithfulness(eval_answer, contexts)
-        relevance = compute_answer_relevance(eval_answer, question)
-
-        # Accuracy score
-        accuracy_score = (
-            0.4 * f1 +
-            0.3 * faithfulness +
-            0.3 * relevance
-        )
-
-        if accuracy_score >= 0.75:
-            accuracy_range = "0.8-1.0"
-        elif accuracy_score >= 0.55:
-            accuracy_range = "0.5-0.8"
-        elif accuracy_score >= 0.35:
-            accuracy_range = "0.3-0.5"
-        else:
-            accuracy_range = "0.0-0.3"
-
         # -----------------------------
-        # LLM JUDGE
+        # METRICS
         # -----------------------------
+        bert_f1 = compute_bertscore(answer, ground_truth)
+        faithfulness = compute_faithfulness(answer, contexts)
+        relevance = compute_relevance(answer, question)
+        groundness = compute_groundedness(answer, contexts)
+
         judge = llm_judge(
             question,
-            eval_answer,
+            answer,
             ground_truth,
             " ".join(contexts)
         )
@@ -288,56 +272,43 @@ def evaluate():
             judge["groundedness"]
         ) / 3
 
-        # Print
-        print("F1:", round(f1, 4))
-        print("Faithfulness:", round(faithfulness, 4))
-        print("Relevance:", round(relevance, 4))
-        print("Accuracy Score:", round(accuracy_score, 4))
-        print("LLM Score:", round(llm_score, 4))
+        # -----------------------------
+        # FINAL SCORE
+        # -----------------------------
+        accuracy = (
+            0.30 * bert_f1 +
+            0.25 * llm_score +
+            0.20 * faithfulness +
+            0.15 * relevance +
+            0.10 * groundness   # 🔥 important
+        )
 
-        record = {
+        print("BERT:", round(bert_f1, 3))
+        print("Faith:", round(faithfulness, 3))
+        print("Relevance:", round(relevance, 3))
+        print("Groundedness:", round(groundness, 3))
+        print("LLM:", round(llm_score, 3))
+        print("Final:", round(accuracy, 3))
+
+        results.append({
             "question": question,
-            "evaluation_answer": eval_answer,
-            "gradio_answer": gradio_answer,
-            "accuracy_score": float(round(accuracy_score, 3)),
-            "accuracy_range": accuracy_range,
-            "f1": float(round(f1, 4)),
-            "faithfulness": float(round(faithfulness, 4)),
-            "answer_relevance": float(round(relevance, 4)),
-            "llm_judge": judge,
-            "llm_score": float(round(llm_score, 3)),
-            "latency_sec": float(latency),
-        }
+            "answer": answer,
+            "ground_truth": ground_truth,
+            "accuracy": round(accuracy, 3),
+            "bertscore": round(bert_f1, 3),
+            "faithfulness": round(faithfulness, 3),
+            "relevance": round(relevance, 3),
+            "groundedness": round(groundedness, 3),
+            "llm_score": round(llm_score, 3),
+            "latency": latency,
+        })
 
-        results.append(record)
-
-        totals["accuracy"] += accuracy_score
-        totals["f1"] += f1
-        totals["faithfulness"] += faithfulness
-        totals["answer_relevance"] += relevance
-        totals["llm_score"] += llm_score
-
-    # Summary
-    n = len(results)
-
-    summary = {
-        "accuracy": round(totals["accuracy"] / n, 4),
-        "f1": round(totals["f1"] / n, 4),
-        "faithfulness": round(totals["faithfulness"] / n, 4),
-        "answer_relevance": round(totals["answer_relevance"] / n, 4),
-        "llm_score": round(totals["llm_score"] / n, 4),
-    }
-
-    output = {
-        "summary": summary,
-        "results": results,
-    }
+    output = {"results": results}
 
     with open(JSON_REPORT_PATH, "w") as f:
         json.dump(output, f, indent=2)
 
-    print("\n✅ Evaluation complete")
-    print("Saved to:", JSON_REPORT_PATH)
+    print("\n✅ DONE")
 
 
 if __name__ == "__main__":
