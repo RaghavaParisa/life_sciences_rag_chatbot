@@ -51,6 +51,13 @@ Ollama must be running at http://localhost:11434 before starting the app.
 
 2.3 Sentence Transformer Model (Offline)
 Download all-MiniLM-L6-v2 locally. The system runs fully offline (TRANSFORMERS_OFFLINE=1).
+
+# Install Git LFS first (one time)
+git lfs install
+
+# Clone the entire model repo inside model folder
+git clone https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
 # One-time download (run from any Python environment with internet access)
 from sentence_transformers import SentenceTransformer
 model = SentenceTransformer("all-MiniLM-L6-v2")
