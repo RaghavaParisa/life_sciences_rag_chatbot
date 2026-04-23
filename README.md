@@ -55,7 +55,7 @@ Download all-MiniLM-L6-v2 locally. The system runs fully offline (TRANSFORMERS_O
 # Install Git LFS first (one time)
 git lfs install
 
-# Clone the entire model repo inside model folder
+# Clone the entire model repo inside the model folder
 git clone https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
 
 # One-time download (run from any Python environment with internet access)
@@ -86,7 +86,7 @@ Supported formats: CSV, XLSX, XLS, PDF, TXT, JSON
 git clone <repo-url>
 cd clinicaltrails
  
-# Create and activate virtual environment
+# Create and activate a virtual environment
 python -m venv venv
 venv\Scripts\activate          # Windows
 source venv/bin/activate        # macOS / Linux
@@ -105,7 +105,7 @@ clinicaltrails/
 ├── ingestion.py            ← Document loading and chunking
 ├── embeddings.py           ← FAISS index management
 ├── evaluation.py           ← Evaluation framework (12 tasks)
-├── auth.py                 ← JWT authentication (admin / user)
+├── auth.py                 ← JWT authentication (admin/user)
 ├── audit.py                ← Interaction logging (append-only)
 ├── requirements.txt        ← Python dependencies
 │
@@ -188,8 +188,8 @@ flowchart TD
 The system combines two fundamentally different retrieval methods to maximize recall and precision for life sciences queries:
 
 Method	Strength	Weakness
-BM25 (keyword)	Exact term matching — drug IDs, dataset codes, clinical terms	Misses paraphrased or synonym queries
-FAISS (semantic)	Understands meaning, handles paraphrases and related concepts	Can miss exact identifiers and rare terms
+BM25 (keyword)	Exact term matching — drug IDs, dataset codes, clinical terms. Misses paraphrased or synonym queries
+FAISS (semantic)	understands meaning, handles paraphrases, and related concepts. It can miss exact identifiers and rare terms
 Hybrid (0.7 + 0.3)	Best of both — high precision AND high recall	Slightly more compute per query
 
 Life sciences data contains specific identifiers (DrugBank IDs, dataset codes) where exact matching is critical — hence the higher BM25 weight of 0.7.
@@ -203,8 +203,8 @@ When documents are uploaded through the UI (custom upload), the system runs BM25
 ## Test Suite
 12 curated evaluation tasks covering all major data sources:
 Domain	Sample Questions
-DrugBank Vocabulary	Synonyms, DrugBank IDs, common names for drug entries
-HSRR Dataset	Dataset descriptions, purpose, years, instrument details
+DrugBank Vocabulary	Synonyms, DrugBank IDs, and common names for drug entries
+HSRR Dataset: Dataset descriptions, purpose, years, instrument details
 Post-COVID HRQoL PDF	Pooled EQ-5D scores, determinants of impaired HRQoL
 Age Memory Research PDF	Dopaminergic mechanisms, engram cell reactivation patterns
 
@@ -272,7 +272,7 @@ init_rag_once()	Cached with @st.cache_resource — runs only once per session
 
 ## rag.py
 Function	Description
-init_hybrid(docs, index)	Initializes HybridSearch with documents and optional FAISS index
+init_hybrid(docs, index)	Initializes HybridSearch with documents and an optional FAISS index
 retrieve(query, top_k=7)	Fetches top documents, deduplicates by source, builds context strings
 generate_answer(query, ctx, cit)	Builds strict RAG prompt, calls Ollama, appends citation footer
 
