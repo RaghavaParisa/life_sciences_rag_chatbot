@@ -125,6 +125,8 @@ clinicaltrails/
 ------------------------------------------------------------------------
 
 # 🏗️ Architecture Diagram
+
+# End -to-End Workflow
 ```mermaid
 flowchart TD
     UI["🖥️ USER INTERFACE\nStreamlit App · Login · Chat · Upload · Admin · LLM Judge"]
@@ -145,6 +147,7 @@ flowchart TD
     FAISS --> HYBRID
     HYBRID --> CTX --> LLM --> ANS --> AUDIT
 ```
+# Data Ingestion & Embedding Pipeline
 ```mermaid
 flowchart TD
     SRC["📂 Data Sources\nCSV · XLSX · PDF · TXT · JSON"]
