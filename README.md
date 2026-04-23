@@ -96,7 +96,7 @@ pip install -r requirements.txt
 
 ------------------------------------------------------------------------
 # Project Structure
-
+```
 clinicaltrails/
 │
 ├── streamlit_app.py        ← Main UI (Streamlit)
@@ -121,7 +121,7 @@ clinicaltrails/
 ├── ../data/                ← Your data files
 └── ../model/
     └── all-MiniLM-L6-v2/  ← Local embedding model (offline)
-
+```
 ------------------------------------------------------------------------
 
 # 🏗️ Architecture Diagram
