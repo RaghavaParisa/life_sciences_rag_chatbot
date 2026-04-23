@@ -72,12 +72,14 @@ pip install faiss-gpu        # GPU version (requires CUDA)
 
 2.5 Data Directory
 Place your source data files in ../data/ (relative to project root):
+```
 data/
 ├── drugbank_vocabulary.csv
 ├── HSRR_Archived_Data.csv
 ├── post_covid.pdf
 ├── age_memory.pdf
 └── (any other CSV / XLSX / PDF / TXT / JSON files)
+```
 Supported formats: CSV, XLSX, XLS, PDF, TXT, JSON
 
 ------------------------------------------------------------------------
