@@ -145,7 +145,26 @@ flowchart TD
     FAISS --> HYBRID
     HYBRID --> CTX --> LLM --> ANS --> AUDIT
 ```
+```mermaid
+flowchart TD
+    SRC["📂 Data Sources\nCSV · XLSX · PDF · TXT · JSON"]
+    EXTRACT["🔍 Text Extraction\ningestion.py"]
+    SPLIT["✂️ RecursiveCharacterTextSplitter\nchunk_size=500 · chunk_overlap=100"]
+    CHUNKS["📦 Document Chunks\n{ content, source, page }"]
 
+    MODEL["🧠 all-MiniLM-L6-v2\nSentence Transformers · Offline"]
+
+    C1["CASE 1: First run or model changed → FULL REBUILD"]
+    C2["CASE 2: File modified → FULL REBUILD"]
+    C3["CASE 3: New files only → INCREMENTAL ADD"]
+    C4["CASE 4: No changes → LOAD FROM DISK"]
+
+    STORE["💾 embeddings/\nfaiss.index · documents.pkl\nmetadata.pkl · model_meta.pkl"]
+
+    SRC --> EXTRACT --> SPLIT --> CHUNKS --> MODEL
+    MODEL --> C1 & C2 & C3 & C4
+    C1 & C2 & C3 & C4 --> STORE
+```
 ------------------------------------------------------------------------
 
 # 🔄 Workflow
