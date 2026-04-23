@@ -125,92 +125,26 @@ clinicaltrails/
 ------------------------------------------------------------------------
 
 # 🏗️ Architecture Diagram
+```mermaid
+flowchart TD
+    UI["🖥️ USER INTERFACE\nStreamlit App · Login · Chat · Upload · Admin · LLM Judge"]
+    AUTH["🔐 AUTHENTICATION LAYER\nauth.py · JWT Token Generation · Role Verification\nRoles: admin / user"]
+    RAG["⚙️ RAG PIPELINE — rag.py"]
+    BM25["📝 BM25 Search\nKeyword · Weight: 0.7"]
+    FAISS["🔢 FAISS Vector Search\nSemantic Similarity · Weight: 0.3"]
+    HYBRID["🔀 Combined Ranked Results\nhybrid_search.py"]
+    CTX["📄 Context Builder + Source Deduplication"]
+    LLM["🤖 LOCAL LLM via Ollama\nQwen2.5:7b — UI Judge · Qwen2.5:3b — Evaluation"]
+    ANS["✅ Answer + Citations + Source List"]
+    AUDIT["📋 AUDIT LAYER — audit.py\ntimestamp · user · query · answer · sources\naudit_logs.jsonl — append-only"]
 
-# End-to-End Workflow
-┌─────────────────────────────────────────────────────────────┐
-│                    USER INTERFACE                           │
-│            Streamlit App (streamlit_app.py)                 │
-│      Login │ Chat │ Upload │ Admin Panel │ LLM Judge        │
-└────────────────────────────┬────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  AUTHENTICATION LAYER                       │
-│                      auth.py                                │
-│        JWT Token Generation │ Role Verification             │
-│               Roles: admin / user                           │
-└────────────────────────────┬────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    RAG PIPELINE (rag.py)                    │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │          HYBRID SEARCH (hybrid_search.py)           │    │
-│  │                                                     │    │
-│  │  ┌─────────────────┐    ┌──────────────────────┐    │    │
-│  │  │  BM25 Search    │    │  FAISS Vector Search  │   │    │ 
-│  │  │  (Keyword)      │    │  (Semantic Similarity)│   │    │
-│  │  │  Weight: 0.7    │    │  Weight: 0.3          │   │    │
-│  │  └────────┬────────┘    └──────────┬────────────┘   │    │
-│  │           └────────────┬────────────┘               │    │
-│  │                        ▼                            │    │
-│  │           Combined Ranked Results                   │    │
-│  └─────────────────────────────────────────────────────┘    │
-│                          │                                  │
-│                          ▼                                  │
-│             Context Builder + Source Deduplication          │
-│                          │                                  │
-│                          ▼                                  │
-│  ┌─────────────────────────────────────────────────────┐    │
-│  │             LOCAL LLM via Ollama                    │    │
-│  │    Qwen2.5:7b (UI Judge) │ Qwen2.5:3b (Evaluation)  │    │
-│  └─────────────────────────────────────────────────────┘    │
-│                          │                                  │
-│                          ▼                                  │
-│             Answer + Citations + Source List                │
-└────────────────────────────┬────────────────────────────────┘
-                             │
-                             ▼
-┌─────────────────────────────────────────────────────────────┐
-│                   AUDIT LAYER (audit.py)                    │
-│      timestamp │ user │ query │ answer │ sources            │
-│             audit_logs.jsonl (append-only)                  │
-└─────────────────────────────────────────────────────────────┘
-
-# Data Ingestion & Embedding Pipeline
-
-┌──────────────────────────────────────────────────────────────┐
-│                 INGESTION PIPELINE (ingestion.py)            │
-│                                                              │
-│  CSV │ XLSX │ PDF │ TXT │ JSON  →  Text Extraction           │
-│                              │                               │
-│                              ▼                               │
-│              RecursiveCharacterTextSplitter                  │
-│              chunk_size=500  │  chunk_overlap=100            │
-│                              │                               │
-│                              ▼                               │
-│          { content: str, source: str, page: int|None }       │
-└──────────────────────────────┬───────────────────────────────┘
-                               │
-                               ▼
-┌──────────────────────────────────────────────────────────────┐
-│                EMBEDDING PIPELINE (embeddings.py)            │
-│                                                              │
-│   Model: all-MiniLM-L6-v2 (Sentence Transformers, offline)   │
-│                                                              │
-│   Smart Rebuild Detection (4 cases):                         │
-│   CASE 1: First run or model changed   → FULL REBUILD        │
-│   CASE 2: Existing file modified       → FULL REBUILD        │
-│   CASE 3: New files added only         → INCREMENTAL ADD     │
-│   CASE 4: No changes detected          → LOAD FROM DISK      │
-│                                                              │
-│   Stored in embeddings/:                                     │
-│   faiss.index     ← L2-normalized IndexFlatIP (cosine sim)   │
-│   documents.pkl   ← All chunked documents                    │
-│   metadata.pkl    ← File modification timestamps             │
-│   model_meta.pkl  ← Active model path (triggers rebuild)     │
-└──────────────────────────────────────────────────────────────┘
+    UI --> AUTH --> RAG
+    RAG --> BM25
+    RAG --> FAISS
+    BM25 --> HYBRID
+    FAISS --> HYBRID
+    HYBRID --> CTX --> LLM --> ANS --> AUDIT
+```
 
 ------------------------------------------------------------------------
 
