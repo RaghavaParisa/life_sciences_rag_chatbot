@@ -39,24 +39,24 @@ Complete all steps below before running the application.
 2.2 Ollama — Local LLM Runtime
 Ollama runs LLM inference locally. Install from: https://ollama.com
 # Pull the models used by the system
-ollama pull qwen2.5:7b     # Used by Streamlit UI (LLM-as-judge)
-ollama pull qwen2.5:3b     # Used by evaluation pipeline
+- ollama pull qwen2.5:7b     # Used by Streamlit UI (LLM-as-judge)
+- ollama pull qwen2.5:3b     # Used by evaluation pipeline
  
 # Start Ollama server (must be running before app launch)
-ollama serve
+- ollama serve
  
 # Verify models are available
-ollama list
-Ollama must be running at http://localhost:11434 before starting the app.
+- ollama list
+- Ollama must be running at http://localhost:11434 before starting the app.
 
 2.3 Sentence Transformer Model (Offline)
 Download all-MiniLM-L6-v2 locally. The system runs fully offline (TRANSFORMERS_OFFLINE=1).
 
-# Install Git LFS first (one time)
-git lfs install
-
 # Clone the entire model repo inside the model folder
-git clone https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+- git clone https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
+
+# Install Git LFS first (one time)
+- git lfs install
 
 # One-time download (run from any Python environment with internet access)
 from sentence_transformers import SentenceTransformer
