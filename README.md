@@ -474,13 +474,13 @@ export JWT_SECRET=your_long_random_secret_here
 ------------------------------------------------------------------------
 
 ## Future Work
-•	RAGAS integration for standardized, reproducible evaluation benchmarks
-•	Cross-encoder re-ranking (e.g., ms-marco-MiniLM) for improved precision
-•	GPU-accelerated FAISS (faiss-gpu) for large-scale document collections
-•	Streaming LLM responses in the Streamlit UI
-•	Multi-user audit dashboard with filtering and export
-•	Support for DICOM and HL7 FHIR medical data formats
-•	Configurable chunking strategies (semantic, sentence-level)
+- RAGAS integration for standardized, reproducible evaluation benchmarks
+- Cross-encoder re-ranking (e.g., ms-marco-MiniLM) for improved precision
+- GPU-accelerated FAISS (faiss-gpu) for large-scale document collections
+- Streaming LLM responses in the Streamlit UI
+- Multi-user audit dashboard with filtering and export
+- Support for DICOM and HL7 FHIR medical data formats
+- Configurable chunking strategies (semantic, sentence-level)
 
 ------------------------------------------------------------------------
 
