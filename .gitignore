@@ -1,0 +1,22 @@
+# Models & embeddings
+model/
+embeddings/
+src/embeddings/
+
+# Data
+data/
+*.pdf
+*.csv
+
+# Logs
+*.jsonl
+*.log
+*.txt
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OS
+.DS_Store
+Thumbs.db

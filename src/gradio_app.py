@@ -4,7 +4,11 @@ import numpy as np
 import datetime
 
 from auth import authenticate, verify_token, check_permission
+<<<<<<< HEAD
 from embeddings import load_or_create_faiss
+=======
+from mimiLM_embeddings import load_or_create_faiss
+>>>>>>> 0418b0a1 (Sync local project)
 from rag import retrieve, generate_answer, init_hybrid
 # from audit import log
 
