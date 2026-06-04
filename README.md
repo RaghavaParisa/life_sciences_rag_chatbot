@@ -131,44 +131,100 @@ clinicaltrails/
 # End -to-End Workflow
 ```mermaid
 flowchart TD
-    UI["🖥️ USER INTERFACE\nStreamlit App · Login · Chat · Upload · Admin · LLM Judge"]
-    AUTH["🔐 AUTHENTICATION LAYER\nauth.py · JWT Token Generation · Role Verification\nRoles: admin / user"]
-    RAG["⚙️ RAG PIPELINE — rag.py"]
-    BM25["📝 BM25 Search\nKeyword · Weight: 0.7"]
-    FAISS["🔢 FAISS Vector Search\nSemantic Similarity · Weight: 0.3"]
-    HYBRID["🔀 Combined Ranked Results\nhybrid_search.py"]
-    CTX["📄 Context Builder + Source Deduplication"]
-    LLM["🤖 LOCAL LLM via Ollama\nQwen2.5:7b — UI Judge · Qwen2.5:3b — Evaluation"]
-    ANS["✅ Answer + Citations + Source List"]
-    AUDIT["📋 AUDIT LAYER — audit.py\ntimestamp · user · query · answer · sources\naudit_logs.jsonl — append-only"]
+    %% Nodes
+    UI["🖥️ USER INTERFACE<br>Streamlit App<br>Login · Chat · Upload<br>Admin Panel · LLM Judge"]
 
+    AUTH["🔐 AUTHENTICATION<br>auth.py<br>JWT Token Generation<br>Role Verification<br>admin / user"]
+
+    RAG["⚙️ RAG PIPELINE<br>rag.py"]
+
+    BM25["📝 BM25 Search<br>Keyword Matching<br>Weight: 0.7"]
+
+    FAISS["🔢 FAISS Vector Search<br>Semantic Similarity<br>Weight: 0.3"]
+
+    HYBRID["🔀 Hybrid Ranking<br>hybrid_search.py"]
+
+    CTX["📄 Context Builder<br>Source Deduplication"]
+
+    LLM["🤖 LOCAL LLM (Ollama)<br>Qwen2.5:7b → UI Judge<br>Qwen2.5:3b → Evaluation"]
+
+    ANS["✅ Answer Output<br>Citations + Sources"]
+
+    AUDIT["📋 AUDIT LAYER<br>audit.py<br>timestamp · user · query<br>answer · sources<br>audit_logs.jsonl"]
     UI --> AUTH --> RAG
     RAG --> BM25
     RAG --> FAISS
     BM25 --> HYBRID
     FAISS --> HYBRID
     HYBRID --> CTX --> LLM --> ANS --> AUDIT
+
+    %% Color Classes
+    classDef ui fill:#E3F2FD,stroke:#1E88E5,stroke-width:1px,color:#000;
+    classDef auth fill:#E8F5E9,stroke:#43A047,stroke-width:1px,color:#000;
+    classDef rag fill:#FFF3E0,stroke:#FB8C00,stroke-width:1px,color:#000;
+    classDef retrieval fill:#F3E5F5,stroke:#8E24AA,stroke-width:1px,color:#000;
+    classDef llm fill:#E0F7FA,stroke:#00ACC1,stroke-width:1px,color:#000;
+    classDef output fill:#E8F5E9,stroke:#2E7D32,stroke-width:1px,color:#000;
+    classDef audit fill:#FBE9E7,stroke:#F4511E,stroke-width:1px,color:#000;
+
+    %% Apply Classes
+    class UI ui;
+    class AUTH auth;
+    class RAG rag;
+    class BM25,FAISS,HYBRID,CTX retrieval;
+    class LLM llm;
+    class ANS output;
+    class AUDIT audit;
 ```
 # Data Ingestion & Embedding Pipeline
 ```mermaid
 flowchart TD
-    SRC["📂 Data Sources\nCSV · XLSX · PDF · TXT · JSON"]
-    EXTRACT["🔍 Text Extraction\ningestion.py"]
-    SPLIT["✂️ RecursiveCharacterTextSplitter\nchunk_size=500 · chunk_overlap=100"]
-    CHUNKS["📦 Document Chunks\n{ content, source, page }"]
 
-    MODEL["🧠 all-MiniLM-L6-v2\nSentence Transformers · Offline"]
+    %% Nodes
+    SRC["📂 DATA SOURCES<br>CSV · XLSX · PDF<br>TXT · JSON"]
 
-    C1["CASE 1: First run or model changed → FULL REBUILD"]
-    C2["CASE 2: File modified → FULL REBUILD"]
-    C3["CASE 3: New files only → INCREMENTAL ADD"]
-    C4["CASE 4: No changes → LOAD FROM DISK"]
+    EXTRACT["🔍 Text Extraction<br>ingestion.py"]
 
-    STORE["💾 embeddings/\nfaiss.index · documents.pkl\nmetadata.pkl · model_meta.pkl"]
+    SPLIT["✂️ Text Splitter<br>RecursiveCharacterTextSplitter<br>chunk_size=500<br>chunk_overlap=100"]
 
+    CHUNKS["📦 Document Chunks<br>{ content, source, page }"]
+
+    MODEL["🧠 Embedding Model<br>all-MiniLM-L6-v2<br>Sentence Transformers<br>Offline"]
+
+    C1["CASE 1<br>First Run / Model Change<br>→ Full Rebuild"]
+
+    C2["CASE 2<br>File Modified<br>→ Full Rebuild"]
+
+    C3["CASE 3<br>New Files Only<br>→ Incremental Add"]
+
+    C4["CASE 4<br>No Changes<br>→ Load from Disk"]
+
+    STORE["💾 Storage<br>embeddings/<br>faiss.index<br>documents.pkl<br>metadata.pkl<br>model_meta.pkl"]
     SRC --> EXTRACT --> SPLIT --> CHUNKS --> MODEL
-    MODEL --> C1 & C2 & C3 & C4
-    C1 & C2 & C3 & C4 --> STORE
+    MODEL --> C1
+    MODEL --> C2
+    MODEL --> C3
+    MODEL --> C4
+    C1 --> STORE
+    C2 --> STORE
+    C3 --> STORE
+    C4 --> STORE
+
+    %% Color Classes
+    classDef source fill:#E3F2FD,stroke:#1E88E5,stroke-width:1px,color:#000;
+    classDef process fill:#FFF3E0,stroke:#FB8C00,stroke-width:1px,color:#000;
+    classDef chunk fill:#F1F8E9,stroke:#7CB342,stroke-width:1px,color:#000;
+    classDef model fill:#E0F7FA,stroke:#00ACC1,stroke-width:1px,color:#000;
+    classDef logic fill:#F3E5F5,stroke:#8E24AA,stroke-width:1px,color:#000;
+    classDef storage fill:#FBE9E7,stroke:#F4511E,stroke-width:1px,color:#000;
+
+    %% Apply Classes
+    class SRC source;
+    class EXTRACT,SPLIT process;
+    class CHUNKS chunk;
+    class MODEL model;
+    class C1,C2,C3,C4 logic;
+    class STORE storage;
 ```
 ------------------------------------------------------------------------
 
@@ -189,10 +245,10 @@ flowchart TD
 # Hybrid Search Design
 The system combines two fundamentally different retrieval methods to maximize recall and precision for life sciences queries:
 
-Method	Strength	Weakness
-BM25 (keyword)	Exact term matching — drug IDs, dataset codes, clinical terms. Misses paraphrased or synonym queries
-FAISS (semantic)	understands meaning, handles paraphrases, and related concepts. It can miss exact identifiers and rare terms
-Hybrid (0.7 + 0.3)	Best of both — high precision AND high recall	Slightly more compute per query
+- Method Strength & Weakness
+ 1. BM25 (keyword)	Exact term matching — drug IDs, dataset codes, clinical terms. Misses paraphrased or synonym queries
+ 2. FAISS (semantic)	understands meaning, handles paraphrases, and related concepts. It can miss exact identifiers and rare terms
+ 3. Hybrid (0.7 + 0.3)	Best of both — high precision AND high recall	Slightly more compute per query
 
 Life sciences data contains specific identifiers (DrugBank IDs, dataset codes) where exact matching is critical — hence the higher BM25 weight of 0.7.
 
@@ -203,40 +259,64 @@ When documents are uploaded through the UI (custom upload), the system runs BM25
 # Evaluation Framework
 
 ## Test Suite
+```
+
 12 curated evaluation tasks covering all major data sources:
-Domain	Sample Questions
-DrugBank Vocabulary	Synonyms, DrugBank IDs, and common names for drug entries
-HSRR Dataset: Dataset descriptions, purpose, years, instrument details
-Post-COVID HRQoL PDF	Pooled EQ-5D scores, determinants of impaired HRQoL
-Age Memory Research PDF	Dopaminergic mechanisms, engram cell reactivation patterns
+
+| Domain                   | Sample Questions |
+|--------------------------|------------------|
+| DrugBank Vocabulary      | Synonyms, DrugBank IDs, and common names for drug entries |
+| HSRR Dataset             | Dataset descriptions, purpose, years, instrument details |
+| Post-COVID HRQoL PDF     | Pooled EQ-5D scores, determinants of impaired HRQoL |
+| Age Memory Research PDF  | Dopaminergic mechanisms, engram cell reactivation patterns |
+
+```
 
 ## Metrics & Scoring
+**Final Score Calculation**
 Final Score = 0.30 × BERTScore F1
            + 0.25 × LLM Judge Score
            + 0.20 × Faithfulness
            + 0.15 × Relevance
            + 0.10 × Groundedness
 
-Metric	Method	Weight
-BERTScore F1	Semantic overlap between answer and ground truth	30%
-LLM Judge Score	Qwen2.5:3b scores correctness + completeness + groundedness	25%
-Faithfulness	Cosine similarity: answer embedding vs context embedding	20%
-Relevance	Cosine similarity: answer embedding vs question embedding	15%
-Groundedness	Sentence-level grounding — % sentences cosine sim > 0.55	10%
-
+### 📈 Metric Breakdown
+```
+| Metric           | Method                                                                | Weight |
+|------------------|-----------------------------------------------------------------------|--------|
+| **BERTScore F1** | Semantic overlap between answer and ground truth                      | 30%    |
+| **LLM Judge**    | Qwen2.5:3b evaluates correctness, completeness, groundedness          | 25%    |
+| **Faithfulness** | Cosine similarity: answer embedding vs context embedding              | 20%    |
+| **Relevance**    | Cosine similarity: answer embedding vs question embedding             | 15%    |
+| **Groundedness** | Sentence-level grounding (% sentences with cosine sim > 0.55)         | 10%    |
+```
 Output is saved to evaluation_report.json with per-question breakdowns.
 
 ------------------------------------------------------------------------
 # Authentication & Security
 
 ## Default Credentials
-Username	Password	Role
-admin	admin123	admin — can reload base RAG index
-user	user123	user — query and upload only
+```
 
-⚠️  Change credentials in auth.py and set JWT_SECRET via environment variable before any deployment:
+| Username | Password | Role |
+|----------|----------|------|
+| admin    | admin123 | Admin — can reload base RAG index |
+| user     | user123  | User — can query and upload data only |
+
+
+## ⚠️ Security Notice
+
+⚠️ **Important:** Change default credentials before deployment.
+
+- Update credentials in `auth.py`
+- Set a secure JWT secret using environment variables
+
+### 🔑 Set JWT Secret
+
+```bash
 export JWT_SECRET=your_long_random_secret_here
 
+```
 ## JWT Token Flow
 - User submits credentials → authenticate() validates against USERS dict
 - On success: JWT token generated with user, role, exp, iat claims
@@ -263,82 +343,118 @@ export JWT_SECRET=your_long_random_secret_here
 ------------------------------------------------------------------------
 # Module Reference
 
-## streamlit_app.py
-Function	Description
-login_page()	JWT-based login with spinner UX and two-phase auth flow
-chat_section()	Query input, streaming answer display, source citation expander
-upload_section()	File uploader — instantly enables BM25-only RAG on custom docs
-admin_panel()	Admin-only button to reload base RAG index
-llm_judge()	Calls Qwen2.5:7b via Ollama to score faithfulness/relevance/correctness
-init_rag_once()	Cached with @st.cache_resource — runs only once per session
 
-## rag.py
-Function	Description
-init_hybrid(docs, index)	Initializes HybridSearch with documents and an optional FAISS index
-retrieve(query, top_k=7)	Fetches top documents, deduplicates by source, builds context strings
-generate_answer(query, ctx, cit)	Builds strict RAG prompt, calls Ollama, appends citation footer
+### 🖥️ streamlit_app.py
+```
+| Function          | Description |
+|------------------|-------------|
+| `login_page()`   | JWT-based login with spinner UX and two-phase authentication flow |
+| `chat_section()` | Handles query input, streaming responses, and source citation display |
+| `upload_section()` | File uploader enabling BM25-only RAG on custom documents |
+| `admin_panel()`  | Admin-only interface to reload base RAG index |
+| `llm_judge()`    | Calls Qwen2.5:7b via Ollama to score faithfulness, relevance, and correctness |
+| `init_rag_once()`| Cached using `@st.cache_resource` — initializes RAG once per session |
 
-## embeddings.py
-Function	Description
-load_or_create_faiss(data_dir)	Smart loader with 4-case change detection (rebuild/incremental/cached)
-build_faiss_index(embeddings)	Creates L2-normalized IndexFlatIP for cosine similarity search
-is_model_changed()	Compares stored model path vs current — triggers full rebuild if different
+---
 
-## hybrid_search.py
-Function	Description
-HybridSearch.__init__()	Initializes BM25 with tokenized corpus; stores FAISS index and embed model
-bm25_search(query, top_k)	Lowercased + cleaned query → BM25Okapi.get_scores() → top-k docs
-vector_search(query, top_k)	Encodes query → FAISS index.search() → top-k docs by cosine sim
-search(query, top_k=5)	Combines scores (0.7 BM25 + 0.3 vector), sorts, returns final top-k
+### ⚙️ rag.py
 
-## ingestion.py
-Function	Description
-load_documents(data_dir)	Iterates all supported files, extracts text, chunks, returns doc list + mtime map
+| Function | Description |
+|----------|-------------|
+| `init_hybrid(docs, index)` | Initializes HybridSearch with documents and optional FAISS index |
+| `retrieve(query, top_k=7)` | Retrieves top documents, deduplicates by source, builds context |
+| `generate_answer(query, ctx, cit)` | Builds strict RAG prompt, calls Ollama, appends citations |
 
-## evaluation.py
-Function	Description
-evaluate()	Runs all 12 eval tasks, computes all metrics, writes evaluation_report.json
-compute_bertscore(pred, ref)	BERTScore F1 via bert-score library
-compute_faithfulness(ans, ctxs)	Embedding cosine similarity: answer vs top-3 context chunks
-compute_relevance(ans, q)	Embedding cosine similarity: normalized answer vs question
-compute_groundedness(ans, ctxs)	% of answer sentences with cosine sim > 0.55 against context
-llm_judge(q, ans, gt, ctx)	Prompts Qwen2.5:3b to return JSON with correctness, completeness, groundedness
+---
 
-## auth.py
-Function	Description
-authenticate(username, password)	Validates credentials, generates JWT with user + role + expiry claims
-verify_token(token)	Decodes JWT, returns (user, role) or (None, None) on expiry/invalid
-check_permission(token, role)	Returns True if token valid and role matches required_role
+### 🧠 embeddings.py
 
-## audit.py
-Function	Description
-log_interaction(user, query, answer, sources)	Appends JSON line to audit_logs.jsonl with UTC timestamp
+| Function | Description |
+|----------|-------------|
+| `load_or_create_faiss(data_dir)` | Smart loader with 4-case logic (rebuild / incremental / cached) |
+| `build_faiss_index(embeddings)` | Creates normalized `IndexFlatIP` for cosine similarity |
+| `is_model_changed()` | Detects embedding model changes → triggers full rebuild |
 
-------------------------------------------------------------------------
+---
 
-## Configuration Reference
-Parameter	Location	Default	Description
-OLLAMA_MODEL	rag.py	qwen2.5:3b	Model for answer generation (env: RAG_MODEL)
-OLLAMA_MODEL	streamlit_app.py	qwen2.5:7b	Model for LLM-as-judge scoring
-JWT_SECRET	auth.py	env var	JWT signing key — must be set in production
-TOKEN_EXPIRY	auth.py	1 hour	JWT session duration
-chunk_size	ingestion.py	500	Max characters per document chunk
-chunk_overlap	ingestion.py	100	Character overlap between adjacent chunks
-top_k (retrieve)	rag.py	7	Documents fetched before deduplication
-BM25 weight	hybrid_search.py	0.7	Weight for keyword search component
-FAISS weight	hybrid_search.py	0.3	Weight for semantic search component
+### 🔀 hybrid_search.py
 
-------------------------------------------------------------------------
+| Function | Description |
+|----------|-------------|
+| `HybridSearch.__init__()` | Initializes BM25 corpus + FAISS index + embedding model |
+| `bm25_search(query, top_k)` | Cleans query → BM25 scoring → top-k selection |
+| `vector_search(query, top_k)` | Encodes query → FAISS search → top-k results |
+| `search(query, top_k=5)` | Combines results (0.7 BM25 + 0.3 vector), returns ranked output |
 
-## Troubleshooting
-Issue	Solution
-Ollama connection error	Run: ollama serve. Check model is pulled: ollama list
-FAISS index not found	Auto-builds on first run. Ensure ../data/ contains files.
-Model path error	Verify ../model/all-MiniLM-L6-v2/ exists relative to project root.
-Empty search results	Check terminal for chunk count during ingestion. Ensure data files are non-empty.
-JWT expired warning	Sessions last 1 hour. Log out and log back in.
-BERTScore import error	Run: pip install bert-score (evaluation only)
-bert-score in requirements.txt	Fix the typo — it should be bert-score==0.3.13 (with hyphen)
+---
+
+### 📂 ingestion.py
+
+| Function | Description |
+|----------|-------------|
+| `load_documents(data_dir)` | Loads files, extracts text, chunks documents, returns metadata |
+
+---
+
+### 📊 evaluation.py
+
+| Function | Description |
+|----------|-------------|
+| `evaluate()` | Runs evaluation suite, computes metrics, writes `evaluation_report.json` |
+| `compute_bertscore(pred, ref)` | Computes BERTScore F1 |
+| `compute_faithfulness(ans, ctxs)` | Cosine similarity: answer vs top-3 context chunks |
+| `compute_relevance(ans, q)` | Cosine similarity: answer vs query |
+| `compute_groundedness(ans, ctxs)` | % of sentences grounded in context (> 0.55 similarity) |
+| `llm_judge(q, ans, gt, ctx)` | Uses Qwen2.5:3b to score correctness, completeness, groundedness |
+
+---
+
+### 🔐 auth.py
+
+| Function | Description |
+|----------|-------------|
+| `authenticate(username, password)` | Validates user, generates JWT with role + expiry |
+| `verify_token(token)` | Decodes token, returns user and role |
+| `check_permission(token, role)` | Ensures user has required role |
+
+---
+
+### 📋 audit.py
+
+| Function | Description |
+|----------|-------------|
+| `log_interaction(user, query, answer, sources)` | Logs interaction to `audit_logs.jsonl` with timestamp |
+
+---
+
+## ⚙️ Configuration Reference
+
+| Parameter | Location | Default | Description |
+|----------|---------|---------|-------------|
+| `OLLAMA_MODEL` | rag.py | qwen2.5:3b | Model used for answer generation |
+| `OLLAMA_MODEL` | streamlit_app.py | qwen2.5:7b | Model used for LLM-based evaluation |
+| `JWT_SECRET` | auth.py | env var | JWT signing key (must be set in production) |
+| `TOKEN_EXPIRY` | auth.py | 1 hour | Session duration |
+| `chunk_size` | ingestion.py | 500 | Max characters per chunk |
+| `chunk_overlap` | ingestion.py | 100 | Overlap between chunks |
+| `top_k` | rag.py | 7 | Documents retrieved before deduplication |
+| `BM25 weight` | hybrid_search.py | 0.7 | Keyword search weight |
+| `FAISS weight` | hybrid_search.py | 0.3 | Semantic search weight |
+
+---
+
+## 🛠️ Troubleshooting
+
+| Issue | Solution |
+|------|----------|
+| Ollama connection error | Run `ollama serve` and verify models with `ollama list` |
+| FAISS index not found | Automatically builds on first run — ensure `../data/` has files |
+| Model path error | Verify `../model/all-MiniLM-L6-v2/` exists |
+| Empty search results | Ensure data is non-empty and ingestion logs show chunks |
+| JWT expired | Sessions last 1 hour — re-login required |
+| BERTScore import error | Install with `pip install bert-score` |
+| bert-score installation issue | Ensure correct format: `bert-score==0.3.13` |
+```
 
 ------------------------------------------------------------------------
 
