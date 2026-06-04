@@ -1,8 +1,14 @@
 # 🧬 Life Sciences RAG Assistant
 
-A **Retrieval-Augmented Generation (RAG)** system for life sciences
-queries using **local open-source models**, ensuring **data privacy,
-cost-efficiency, and offline capability**.
+A **Retrieval-Augmented Generation (RAG)** system for Life Sciences document search, powered by **local open-source LLMs** to ensure **data privacy, cost efficiency, and offline capability**.
+
+## 🧩 Problem Statement
+
+Life Sciences organizations manage vast volumes of data across research, clinical, regulatory, and compliance domains, often stored in fragmented and heterogeneous sources. Retrieving relevant information from these repositories using traditional keyword-based search is inefficient, as it lacks contextual understanding and frequently returns noisy or incomplete results.
+
+As a result, domain experts spend significant time manually searching, filtering, and validating information, which impacts productivity and slows down critical decision-making processes.
+
+To address this challenge, we developed a Retrieval-Augmented Generation (RAG)-based intelligent document search platform. This system enables users to query enterprise knowledge using natural language and receive accurate, context-aware responses grounded in source documents. By combining semantic search with generative AI, the solution significantly improves information accessibility, reduces search effort, and enhances the reliability of insights for decision-making.
 
 ------------------------------------------------------------------------
 
@@ -32,9 +38,9 @@ cost-efficiency, and offline capability**.
 Complete all steps below before running the application.
 
 2.1 Python Environment
-•	Python 3.9 or 3.10 (recommended)
-•	pip package manager
-•	Virtual environment (venv or conda)
+- Python 3.9 or 3.10 (recommended)
+- pip package manager
+- Virtual environment (venv or conda)
 
 2.2 Ollama — Local LLM Runtime
 Ollama runs LLM inference locally. Install from: https://ollama.com
@@ -50,7 +56,7 @@ Ollama runs LLM inference locally. Install from: https://ollama.com
 - Ollama must be running at http://localhost:11434 before starting the app.
 
 2.3 Sentence Transformer Model (Offline)
-Download all-MiniLM-L6-v2 locally. The system runs fully offline (TRANSFORMERS_OFFLINE=1).
+- Download all-MiniLM-L6-v2 locally. The system runs fully offline (TRANSFORMERS_OFFLINE=1).
 
 # Clone the entire model repo inside the model folder
 - git clone https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
@@ -58,17 +64,25 @@ Download all-MiniLM-L6-v2 locally. The system runs fully offline (TRANSFORMERS_O
 # Install Git LFS first (one time)
 - git lfs install
 
-# One-time download (run from any Python environment with internet access)
+## 📥 Embedding Model Setup
+
+To enable offline embedding generation, download the Sentence Transformer model once using the following script:
+
+```python
 from sentence_transformers import SentenceTransformer
+
 model = SentenceTransformer("all-MiniLM-L6-v2")
 model.save("../model/all-MiniLM-L6-v2")
-Place the model at: ../model/all-MiniLM-L6-v2/ relative to the project root.
-
+```
 2.4 FAISS
-FAISS (Facebook AI Similarity Search) is not bundled with pip by default:
-pip install faiss-cpu        # CPU version (works on all machines)
-# OR
+
+FAISS (Facebook AI Similarity Search) is a high-performance library used for efficient similarity search over vector embeddings. Since it is not installed by default with pip, it must be added manually.
+
+### ✅ CPU Installation (Recommended)
+```bash
+pip install faiss-cpu
 pip install faiss-gpu        # GPU version (requires CUDA)
+```
 
 2.5 Data Directory
 Place your source data files in ../data/ (relative to project root):
@@ -85,16 +99,17 @@ Supported formats: CSV, XLSX, XLS, PDF, TXT, JSON
 ------------------------------------------------------------------------
 
 # Installation
-git clone <repo-url>
-cd clinicaltrails
+- git clone <repo-url>
+- cd clinicaltrails
  
 # Create and activate a virtual environment
+``` bash 
 python -m venv venv
 venv\Scripts\activate          # Windows
 source venv/bin/activate        # macOS / Linux
- 
+```
 # Install all dependencies
-pip install -r requirements.txt
+- pip install -r requirements.txt
 
 ------------------------------------------------------------------------
 # Project Structure
@@ -344,8 +359,8 @@ export JWT_SECRET=your_long_random_secret_here
 # Module Reference
 
 
-### 🖥️ streamlit_app.py
 ```
+### 🖥️ streamlit_app.py
 | Function          | Description |
 |------------------|-------------|
 | `login_page()`   | JWT-based login with spinner UX and two-phase authentication flow |
