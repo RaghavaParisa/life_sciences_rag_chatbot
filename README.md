@@ -45,25 +45,32 @@ Complete all steps below before running the application.
 2.2 Ollama — Local LLM Runtime
 Ollama runs LLM inference locally. Install from: https://ollama.com
 # Pull the models used by the system
+``` bash
 - ollama pull qwen2.5:7b     # Used by Streamlit UI (LLM-as-judge)
 - ollama pull qwen2.5:3b     # Used by evaluation pipeline
- 
+ ```
 # Start Ollama server (must be running before app launch)
+``` bash
 - ollama serve
- 
+ ```
+
 # Verify models are available
+```bash
 - ollama list
+```
 - Ollama must be running at http://localhost:11434 before starting the app.
 
 2.3 Sentence Transformer Model (Offline)
 - Download all-MiniLM-L6-v2 locally. The system runs fully offline (TRANSFORMERS_OFFLINE=1).
 
 # Clone the entire model repo inside the model folder
+```bash
 - git clone https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2
-
+```
 # Install Git LFS first (one time)
+```bash
 - git lfs install
-
+```
 ## 📥 Embedding Model Setup
 
 To enable offline embedding generation, download the Sentence Transformer model once using the following script:
@@ -109,8 +116,9 @@ venv\Scripts\activate          # Windows
 source venv/bin/activate        # macOS / Linux
 ```
 # Install all dependencies
+``` bash
 - pip install -r requirements.txt
-
+```
 ------------------------------------------------------------------------
 # Project Structure
 ```
@@ -348,13 +356,16 @@ export JWT_SECRET=your_long_random_secret_here
 - ollama serve
  
 ## Terminal 2: start Streamlit
+``` python
 - streamlit run streamlit_app.py
+```
 - Open in browser: http://localhost:8501
 
 ## Run Evaluation
+``` python
 - python evaluation.py
 # Results saved to: evaluation_report.json
-
+```
 ------------------------------------------------------------------------
 # Module Reference
 
@@ -468,7 +479,6 @@ export JWT_SECRET=your_long_random_secret_here
 | Empty search results | Ensure data is non-empty and ingestion logs show chunks |
 | JWT expired | Sessions last 1 hour — re-login required |
 | BERTScore import error | Install with `pip install bert-score` |
-| bert-score installation issue | Ensure correct format: `bert-score==0.3.13` |
 ```
 
 ------------------------------------------------------------------------
