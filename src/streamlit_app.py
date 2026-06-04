@@ -1,13 +1,13 @@
 from sentence_transformers import SentenceTransformer
 import streamlit as st
-import os
+import os, re
 import tempfile
 import time
 import requests
 import json
-
+import asyncio
 from auth import authenticate, verify_token
-from embeddings import MODEL_PATH, load_or_create_faiss
+from embeddings import load_or_create_faiss
 from ingestion import load_documents
 from rag import init_hybrid, retrieve, generate_answer
 
@@ -48,12 +48,6 @@ def init_rag_once():
     index, documents = load_or_create_faiss(DATA_DIR)
     init_hybrid(documents, index)
     return True
-@st.cache_resource
-def load_embedding_model():
-    from sentence_transformers import SentenceTransformer
-    MODEL_PATH = os.path.join(BASE_DIR, "..", "models", "all-MiniLM-L6-v2")
-    return SentenceTransformer(MODEL_PATH)
-    # return SentenceTransformer("models/all-MiniLM-L6-v2")
 
 # -----------------------------
 # SESSION STATE
@@ -113,7 +107,7 @@ Answer: {answer}
                     "temperature": 0.1
                 }
             },
-            timeout=60
+            timeout=240
         )
 
         raw_output = res.json().get("response", "")
@@ -122,7 +116,6 @@ Answer: {answer}
         print("\nLLM RAW OUTPUT:\n", raw_output)
 
         # ✅ Extract JSON block safely
-        import re
         match = re.search(r"\{.*\}", raw_output, re.DOTALL)
 
         if match:
@@ -250,14 +243,43 @@ def upload_section():
 
         st.success("✅ Instant RAG ready!")
 
+# -----------------------------
+# ✅ ASYNC WRAPPERS
+# -----------------------------
+async def async_generate_answer(loop, query, contexts, citations):
+    raw = await loop.run_in_executor(None, generate_answer, query, contexts, citations)
+    return re.split(r"Sources?:", raw, flags=re.IGNORECASE)[0].strip()
+
+async def async_llm_judge(loop, query, answer):
+    return await loop.run_in_executor(None, llm_judge, query, answer)
+
+async def run_async_pipeline(query, contexts, citations):
+    loop = asyncio.get_event_loop()
+
+    # ✅ Start answer
+    answer_task = asyncio.create_task(
+        async_generate_answer(loop, query, contexts, citations)
+    )
+
+    answer = await answer_task
+
+    # ✅ Run judge after answer ready
+    judge_task = asyncio.create_task(
+        async_llm_judge(loop, query, answer)
+    )
+
+    judge = await judge_task
+
+    return answer, judge
+
+# -----------------------------
+# CHAT SECTION
+# -----------------------------
 def chat_section():
     st.subheader("💬 Ask Questions")
 
-    if "is_processing" not in st.session_state:
-        st.session_state.is_processing = False
-
-    if "current_query" not in st.session_state:
-        st.session_state.current_query = ""
+    st.session_state.setdefault("is_processing", False)
+    st.session_state.setdefault("current_query", "")
 
     # -----------------------------
     # INPUT FIRST (ChatGPT style)
@@ -308,14 +330,21 @@ def chat_section():
                     init_hybrid(st.session_state.documents, index)
 
             contexts, citations, _ = retrieve(query)
+            try:
+                # ✅ ASYNC EXECUTION
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+
+                answer, judge = loop.run_until_complete(
+                    run_async_pipeline(query, contexts, citations)
+                )
+            finally:
+                loop.close()
 
             # ✅ Deduplicate sources
             unique_sources = list(dict.fromkeys(citations))
 
             # ✅ Clean answer properly
-            import re
-            raw_answer = generate_answer(query, contexts, citations)
-            answer = re.split(r"Sources?:", raw_answer, flags=re.IGNORECASE)[0].strip()
 
             thinking.empty()
 
@@ -345,10 +374,6 @@ def chat_section():
                     for s in unique_sources:
                         st.markdown(f"- {s}")
 
-            # -----------------------------
-            # EVALUATION
-            # -----------------------------
-            judge = llm_judge(query, answer)
             latency = round(time.time() - start, 2)
 
             # ✅ Save ONCE
@@ -457,7 +482,7 @@ def main():
         if user:
             # 🔥 SHOW FULL PAGE LOADER FIRST
             if not st.session_state.app_ready:
-                with st.spinner("🚀 Loading your workspace..."):
+                with st.spinner("Loading your workspace..."):
                     time.sleep(0.5)  # small UX delay
 
                     # Initialize RAG here (blocking)
