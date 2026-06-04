@@ -186,6 +186,7 @@ def login_page():
                 else:
                     st.session_state.logging_in = False
                     st.error("❌ Invalid credentials")
+                    
 
     # -----------------------------
     # PHASE 2 → SHOW SPINNER
