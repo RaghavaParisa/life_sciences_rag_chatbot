@@ -47,7 +47,7 @@ OLLAMA_MODEL = "qwen2.5:7b"
 def init_rag_once():
     index, documents = load_or_create_faiss(DATA_DIR)
     init_hybrid(documents, index)
-    return True
+    return documents
 
 # -----------------------------
 # SESSION STATE
@@ -238,6 +238,7 @@ def upload_section():
         documents, _ = load_documents(temp_dir)
         st.session_state.documents = documents
         init_hybrid(documents, index=None)
+        st.session_state.documents = documents
         st.session_state.custom_docs = True
 
         st.session_state.custom_docs = True
@@ -319,28 +320,36 @@ def chat_section():
 
         try:
             # Init RAG
+            # if "documents" not in st.session_state:
+            #     index, documents = load_or_create_faiss(DATA_DIR)
+            #     st.session_state.documents = documents
+            #     init_hybrid(documents, index)
+            # else:
+            #     if st.session_state.custom_docs:
+            #         init_hybrid(st.session_state.documents, index=None)
+            #     else:
+            #         index, _ = load_or_create_faiss(DATA_DIR)
+            #         init_hybrid(st.session_state.documents, index)
+            
+            # ✅ RAG already initialized in main()
             if "documents" not in st.session_state:
-                index, documents = load_or_create_faiss(DATA_DIR)
-                st.session_state.documents = documents
-                init_hybrid(documents, index)
-            else:
-                if st.session_state.custom_docs:
-                    init_hybrid(st.session_state.documents, index=None)
-                else:
-                    index, _ = load_or_create_faiss(DATA_DIR)
-                    init_hybrid(st.session_state.documents, index)
+                raise Exception("RAG not initialized properly")
+
 
             contexts, citations, _ = retrieve(query)
-            try:
+            # try:
                 # ✅ ASYNC EXECUTION
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
+                # loop = asyncio.new_event_loop()
+                # asyncio.set_event_loop(loop)
+                # ✅ Only generate answer (fast path)
+            answer = generate_answer(query, contexts, citations)
+            judge = None
 
-                answer, judge = loop.run_until_complete(
-                    run_async_pipeline(query, contexts, citations)
-                )
-            finally:
-                loop.close()
+                # answer, judge = loop.run_until_complete(
+                #     run_async_pipeline(query, contexts, citations)
+                # )
+            # finally:
+            #     loop.close()
 
             # ✅ Deduplicate sources
             unique_sources = list(dict.fromkeys(citations))
@@ -353,19 +362,19 @@ def chat_section():
             # STREAM RESPONSE (FINAL UI)
             # -----------------------------
             answer_placeholder = st.empty()
-            full = ""
+            # full = ""
 
-            for word in answer.split():
-                full += word + " "
-                answer_placeholder.markdown(
-                    f"""
-                    <div style='background:#ffffff;padding:12px;border-radius:10px;border:1px solid #e0e0e0;color:#000;'>
-                    🤖 {full}
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-                time.sleep(0.02)
+            # for word in answer.split():
+            # full += word + " "
+            answer_placeholder.markdown(
+                f"""
+                <div style='background:#ffffff;padding:12px;border-radius:10px;border:1px solid #e0e0e0;color:#000;'>
+                🤖 {answer}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+                # time.sleep(0.02)
 
             # -----------------------------
             # SOURCES
@@ -487,9 +496,11 @@ def main():
                     time.sleep(0.5)  # small UX delay
 
                     # Initialize RAG here (blocking)
-                    index, documents = load_or_create_faiss(DATA_DIR)
+                    # index, documents = load_or_create_faiss(DATA_DIR)
+                    # st.session_state.documents = documents
+                    # init_hybrid(documents, index)
+                    documents = init_rag_once()
                     st.session_state.documents = documents
-                    init_hybrid(documents, index)
 
                     st.session_state.app_ready = True
                     st.rerun()

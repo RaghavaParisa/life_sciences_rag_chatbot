@@ -3,6 +3,7 @@ import requests
 from hybrid_search import HybridSearch
 from audit import log_interaction
 
+session = requests.Session()
 # -----------------------------
 # CONFIG
 # -----------------------------
@@ -35,10 +36,16 @@ def get_hybrid():
     return hybrid
 
 
+def trim_text(text, max_chars=800):
+    """
+    Trim long content to reduce LLM input size.
+    """
+    return text[:max_chars]
+
 # -----------------------------
 # RETRIEVE
 # -----------------------------
-def retrieve(query, top_k=7):
+def retrieve(query, top_k=4):
     global hybrid
 
     if hybrid is None:
@@ -56,22 +63,23 @@ def retrieve(query, top_k=7):
         if doc["source"] not in unique_sources:
             diverse_results.append(doc)
             unique_sources.add(doc["source"])
-        if len(diverse_results) == 5:
+        if len(diverse_results) == 3:
             break
 
-    if len(diverse_results) < 3:
-        diverse_results = results[:5]
+    if len(diverse_results) < 2:
+        diverse_results = results[:3]
 
     contexts = []
     citations = []
 
     for doc in diverse_results:
+        trimmed_content = trim_text(doc['content'], max_chars=800)
         contexts.append(f"""
 Source: {doc['source']}
 Page: {doc.get('page', 'N/A')}
 
 Content:
-{doc['content']}
+{trimmed_content}
 """)
 
         source = doc["source"]
@@ -89,7 +97,14 @@ def generate_answer(query, context, citations, model=None):
     if not context:
         return "⚠️ No relevant documents found."
 
-    context_text = "\n".join(context)
+    # context_text = "\n".join(context)
+    MAX_CONTEXT_CHARS = 2500
+
+    context_text = ""
+    for ctx in context:
+        if len(context_text) + len(ctx) > MAX_CONTEXT_CHARS:
+            break
+        context_text += ctx + "\n"
 
     prompt = f"""
 You are a strict Life Sciences RAG assistant.
@@ -111,10 +126,14 @@ QUESTION:
 Answer:
 """
 
-    model_name = model or OLLAMA_MODEL
+    # model_name = model or OLLAMA_MODEL
+    if len(context_text) < 1000:
+        model_name = "qwen2.5:3b"
+    else:
+        model_name = model or "qwen2.5:7b"
 
     try:
-        response = requests.post(
+        response = session.post(
             OLLAMA_URL,
             json={
                 "model": model_name,
@@ -125,7 +144,7 @@ Answer:
                     "num_predict": 200
                 }
             },
-            timeout=120
+            timeout=60
         )
 
         if response.status_code != 200:
@@ -138,7 +157,7 @@ Answer:
         answer = "❌ Model connection error"
 
     citation_text = "\n\nSources:\n" + "\n".join(set(citations))
-    final_answer = answer + citation_text
+    final_answer = answer
 
     log_interaction(
         user="default_user",

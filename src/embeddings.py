@@ -5,6 +5,8 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 from ingestion import load_documents
 
+os.environ["OMP_NUM_THREADS"] = "4"
+os.environ["MKL_NUM_THREADS"] = "4"
 os.environ["TRANSFORMERS_OFFLINE"] = "1"
 
 EMBEDDINGS_DIR = "embeddings"
@@ -23,7 +25,15 @@ print("MODEL_PATH:", MODEL_PATH)
 
 print("DEBUG MODEL PATH:", MODEL_PATH)  # 👈 VERY IMPORTANT
 
-model = SentenceTransformer(MODEL_PATH)
+# model = SentenceTransformer(MODEL_PATH)
+_model = None
+
+def get_model():
+    global _model
+    if _model is None:
+        print("Loading embedding model...")
+        _model = SentenceTransformer(MODEL_PATH)
+    return _model
 
 def is_model_changed():
     if not os.path.exists(MODEL_META_PATH):
@@ -39,7 +49,7 @@ def build_faiss_index(embeddings):
     dim = embeddings.shape[1]
 
     # Normalize for cosine similarity
-    faiss.normalize_L2(embeddings)
+    # faiss.normalize_L2(embeddings)
 
     index = faiss.IndexFlatIP(dim)
     index.add(embeddings)
@@ -94,11 +104,17 @@ def load_or_create_faiss(data_dir):
 
         if not texts:
             raise ValueError("No valid text found")
-
-        embeddings = model.encode(texts, show_progress_bar=True)
+        model = get_model()
+        embeddings = model.encode(
+    texts,
+    batch_size=32,            # ✅ important
+    show_progress_bar=True,
+    convert_to_numpy=True,
+    normalize_embeddings=True  # ✅ replaces manual normalize
+)
         embeddings = np.array(embeddings).astype("float32")
 
-        faiss.normalize_L2(embeddings)
+        # faiss.normalize_L2(embeddings)
 
         dim = embeddings.shape[1]
         index = faiss.IndexFlatIP(dim)
@@ -133,11 +149,19 @@ def load_or_create_faiss(data_dir):
             if content:
                 texts.append(content)
                 filtered_docs.append(doc)
+        
+        model = get_model()
 
-        embeddings = model.encode(texts, show_progress_bar=True)
+        embeddings = model.encode(
+    texts,
+    batch_size=32,            # ✅ important
+    show_progress_bar=True,
+    convert_to_numpy=True,
+    normalize_embeddings=True  # ✅ replaces manual normalize
+)
         embeddings = np.array(embeddings).astype("float32")
 
-        faiss.normalize_L2(embeddings)
+        # faiss.normalize_L2(embeddings)
 
         dim = embeddings.shape[1]
         index = faiss.IndexFlatIP(dim)
@@ -185,7 +209,16 @@ def load_or_create_faiss(data_dir):
         if new_texts:
             print(f"Embedding {len(new_texts)} new chunks...")
 
-            new_embeddings = model.encode(new_texts, show_progress_bar=True)
+            # new_embeddings = model.encode(new_texts, show_progress_bar=True)
+            model = get_model()
+            new_embeddings = model.encode(
+                new_texts,
+                batch_size=32,
+                show_progress_bar=True,
+                convert_to_numpy=True,
+                normalize_embeddings=True
+            )
+
             new_embeddings = np.array(new_embeddings).astype("float32")
 
             faiss.normalize_L2(new_embeddings)
