@@ -50,12 +50,16 @@ EVAL_TASKS = [
     {
         "question": "What information does the Prescribed Drug Use dataset provide about MEPS?",
         "ground_truth": "MEPS collects information from survey participants about their prescription drugs and then are asked for permission to collect more detailed information from their pharmacies. At the pharmacies, data are collected on the type, dosage, and payment for each filled prescription. ... Prescribed drug expenditures in MEPS are defined as the sum of payments for care received, including out of pocket payments and payments made by private insurance, Medicaid, Medicare and other sources.",
-        "expected_sources": ["Health_Services_and_Sciences_Research_Resources__HSRR__-_Archived_Data.csv"],
+        "expected_sources": [
+            "Health_Services_and_Sciences_Research_Resources.csv"
+        ],
     },
     {
         "question": "What does B.R.I.D.G.E. TO DATA describe?",
         "ground_truth": "B.R.I.D.G.E. TO DATA is a unique non-profit online reference describing population healthcare databases for use in epidemiology and health outcomes research.",
-        "expected_sources": ["Health_Services_and_Sciences_Research_Resources__HSRR__-_Archived_Data.csv"],
+        "expected_sources": [
+            "Health_Services_and_Sciences_Research_Resources.csv"
+        ],
     },
     {
         "question": "What is the pooled mean EQ-5D-5L utility score for post-COVID HRQoL in India from the meta-analysis?",
@@ -75,12 +79,16 @@ EVAL_TASKS = [
     {
         "question": " QODD assesses the quality of dying and death; versions include QODD - Version 1.0 (Significant Other after Death Interview) and QODD - Versions 3.2a (Family Member/Friend and Nursing After Death Self-Administered Questionnaires)",
         "ground_truth": "The Quality of Dying and Death (QODD) is a tool used to assess the quality of dying and death. It has different versions, including QODD - Version 1.0 (Significant Other after Death Interview) and QODD - Versions 3.2a (Family Member/Friend and Nursing After Death Self-Administered Questionnaires).",
-        "expected_sources": ["Health_Services_and_Sciences_Research_Resources__HSRR__-_Archived_Data.csv"],
+        "expected_sources": [
+            "Health_Services_and_Sciences_Research_Resources.csv"
+        ],
     },
     {
         "question": "Describe the EuroQol (EQ-5D) instrument and its primary purpose as listed in the HSRR data",
         "ground_truth": "The EuroQol (EQ-5D) is a standardized instrument used to measure health-related quality of life. Its primary purpose is to assess the health state of individuals across five dimensions: mobility, self-care, usual activities, pain/discomfort, and anxiety/depression.",
-        "expected_sources": ["Health_Services_and_Sciences_Research_Resources__HSRR__-_Archived_Data.csv"],
+        "expected_sources": [
+            "Health_Services_and_Sciences_Research_Resources.csv"
+        ],
     },
     {
         "question": "What causes age-related memory generalization in Drosophila according to the study?",
@@ -212,7 +220,7 @@ ANS: {answer}
         res = requests.post(
             OLLAMA_URL,
             json={"model": MODEL_NAME, "prompt": prompt, "stream": False},
-            timeout=60
+            timeout=60,
         )
 
         txt = res.json()["response"]
@@ -259,28 +267,21 @@ def evaluate():
         relevance = compute_relevance(answer, question)
         groundness = compute_groundedness(answer, contexts)
 
-        judge = llm_judge(
-            question,
-            answer,
-            ground_truth,
-            " ".join(contexts)
-        )
+        judge = llm_judge(question, answer, ground_truth, " ".join(contexts))
 
         llm_score = (
-            judge["correctness"] +
-            judge["completeness"] +
-            judge["groundedness"]
+            judge["correctness"] + judge["completeness"] + judge["groundedness"]
         ) / 3
 
         # -----------------------------
         # FINAL SCORE
         # -----------------------------
         accuracy = (
-            0.30 * bert_f1 +
-            0.25 * llm_score +
-            0.20 * faithfulness +
-            0.15 * relevance +
-            0.10 * groundness   # 🔥 important
+            0.30 * bert_f1
+            + 0.25 * llm_score
+            + 0.20 * faithfulness
+            + 0.15 * relevance
+            + 0.10 * groundness  # 🔥 important
         )
 
         print("BERT:", round(bert_f1, 3))
@@ -290,18 +291,20 @@ def evaluate():
         print("LLM:", round(llm_score, 3))
         print("Final:", round(accuracy, 3))
 
-        results.append({
-            "question": question,
-            "answer": answer,
-            "ground_truth": ground_truth,
-            "accuracy": round(accuracy, 3),
-            "bertscore": round(bert_f1, 3),
-            "faithfulness": round(faithfulness, 3),
-            "relevance": round(relevance, 3),
-            "groundedness": round(groundness, 3),
-            "llm_score": round(llm_score, 3),
-            "latency": latency,
-        })
+        results.append(
+            {
+                "question": question,
+                "answer": answer,
+                "ground_truth": ground_truth,
+                "accuracy": round(accuracy, 3),
+                "bertscore": round(bert_f1, 3),
+                "faithfulness": round(faithfulness, 3),
+                "relevance": round(relevance, 3),
+                "groundedness": round(groundness, 3),
+                "llm_score": round(llm_score, 3),
+                "latency": latency,
+            }
+        )
 
     output = {"results": results}
 

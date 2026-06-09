@@ -42,6 +42,7 @@ def trim_text(text, max_chars=800):
     """
     return text[:max_chars]
 
+
 # -----------------------------
 # RETRIEVE
 # -----------------------------
@@ -73,7 +74,7 @@ def retrieve(query, top_k=4):
     citations = []
 
     for doc in diverse_results:
-        trimmed_content = trim_text(doc['content'], max_chars=800)
+        trimmed_content = trim_text(doc["content"], max_chars=800)
         contexts.append(f"""
 Source: {doc['source']}
 Page: {doc.get('page', 'N/A')}
@@ -139,12 +140,9 @@ Answer:
                 "model": model_name,
                 "prompt": prompt,
                 "stream": False,
-                "options": {
-                    "temperature": 0.2,
-                    "num_predict": 200
-                }
+                "options": {"temperature": 0.2, "num_predict": 200},
             },
-            timeout=60
+            timeout=60,
         )
 
         if response.status_code != 200:
@@ -160,10 +158,7 @@ Answer:
     final_answer = answer
 
     log_interaction(
-        user="default_user",
-        query=query,
-        answer=final_answer,
-        sources=citations
+        user="default_user", query=query, answer=final_answer, sources=citations
     )
 
     return final_answer

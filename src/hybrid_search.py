@@ -2,6 +2,7 @@ import numpy as np
 import re
 from rank_bm25 import BM25Okapi
 
+
 class HybridSearch:
     def __init__(self, documents, index=None, embed_model=None):
         self.documents = documents
@@ -114,11 +115,9 @@ class HybridSearch:
             combined_dict[key] = combined_dict.get(key, 0) + (0.3 * score)
 
         # ✅ Sort top_k only
-        sorted_docs = sorted(
-            combined_dict.items(),
-            key=lambda x: x[1],
-            reverse=True
-        )[:top_k]
+        sorted_docs = sorted(combined_dict.items(), key=lambda x: x[1], reverse=True)[
+            :top_k
+        ]
 
         final_results = []
         final_scores = []
@@ -131,6 +130,3 @@ class HybridSearch:
                 final_scores.append(float(score))
 
         return final_results, final_scores
-
-
-

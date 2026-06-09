@@ -5,14 +5,12 @@ from PyPDF2 import PdfReader
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+
 def load_documents(data_dir):
     documents = []
     file_map = {}
 
-    splitter = RecursiveCharacterTextSplitter(
-        chunk_size=500,
-        chunk_overlap=100
-    )
+    splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100)
 
     for file in os.listdir(data_dir):
         path = os.path.join(data_dir, file)
@@ -31,16 +29,18 @@ def load_documents(data_dir):
 
                 for _, row in df.iterrows():
                     content = " | ".join(
-                        [f"{col}: {row[col]}" for col in df.columns if str(row[col]).strip()]
+                        [
+                            f"{col}: {row[col]}"
+                            for col in df.columns
+                            if str(row[col]).strip()
+                        ]
                     )
                     if content.strip():
                         chunks = splitter.split_text(content)
                         for chunk in chunks:
-                            documents.append({
-                                "content": chunk,
-                                "source": file,
-                                "page": None
-                            })
+                            documents.append(
+                                {"content": chunk, "source": file, "page": None}
+                            )
 
             elif ext in ["xlsx", "xls"]:
                 df = pd.read_excel(path)
@@ -48,16 +48,18 @@ def load_documents(data_dir):
 
                 for _, row in df.iterrows():
                     content = " | ".join(
-                        [f"{col}: {row[col]}" for col in df.columns if str(row[col]).strip()]
+                        [
+                            f"{col}: {row[col]}"
+                            for col in df.columns
+                            if str(row[col]).strip()
+                        ]
                     )
                     if content.strip():
                         chunks = splitter.split_text(content)
                         for chunk in chunks:
-                            documents.append({
-                                "content": chunk,
-                                "source": file,
-                                "page": None
-                            })
+                            documents.append(
+                                {"content": chunk, "source": file, "page": None}
+                            )
 
             elif ext == "pdf":
                 reader = PdfReader(path)
@@ -70,11 +72,13 @@ def load_documents(data_dir):
 
                 chunks = splitter.split_text(full_text)
                 for chunk in chunks:
-                    documents.append({
-                        "content": chunk,
-                        "source": file,
-                        "page": None  # Could track page if needed
-                    })
+                    documents.append(
+                        {
+                            "content": chunk,
+                            "source": file,
+                            "page": None,  # Could track page if needed
+                        }
+                    )
 
             elif ext in ["txt", "md", "json"]:
                 with open(path, "r", encoding="utf-8") as f:
@@ -86,11 +90,7 @@ def load_documents(data_dir):
 
                 chunks = splitter.split_text(content)
                 for chunk in chunks:
-                    documents.append({
-                        "content": chunk,
-                        "source": file,
-                        "page": None
-                    })
+                    documents.append({"content": chunk, "source": file, "page": None})
 
             else:
                 print(f"Skipped unsupported file type: {file}")

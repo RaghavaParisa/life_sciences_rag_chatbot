@@ -12,12 +12,12 @@ def log_interaction(user, query, answer, sources):
         "user": user,
         "query": query,
         "answer": answer,
-        "sources": list(set(sources))
+        "sources": list(set(sources)),
     }
 
     try:
         with open(AUDIT_FILE, "a", encoding="utf-8") as f:
             f.write(json.dumps(log_entry) + "\n")
-        print("Audit log written")   # DEBUG
+        print("Audit log written")  # DEBUG
     except Exception as e:
         print("Audit log failed:", e)

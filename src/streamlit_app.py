@@ -11,25 +11,23 @@ from embeddings import load_or_create_faiss
 from ingestion import load_documents
 from rag import init_hybrid, retrieve, generate_answer
 
-
 # -----------------------------
 # CONFIG
 # -----------------------------
-st.set_page_config(
-    page_title="Life Sciences RAG",
-    page_icon="🧬",
-    layout="wide"
-)
+st.set_page_config(page_title="Life Sciences RAG", page_icon="🧬", layout="wide")
 
 # -----------------------------
 # HIDE SIDEBAR BEFORE LOGIN
 # -----------------------------
 if "token" not in st.session_state or not st.session_state.token:
-    st.markdown("""
+    st.markdown(
+        """
         <style>
             [data-testid="stSidebar"] {display: none;}
         </style>
-    """, unsafe_allow_html=True)
+    """,
+        unsafe_allow_html=True,
+    )
 
 if "app_ready" not in st.session_state:
     st.session_state.app_ready = False
@@ -40,6 +38,7 @@ DATA_DIR = os.path.join(BASE_DIR, "..", "data")
 OLLAMA_URL = "http://localhost:11434/api/generate"
 OLLAMA_MODEL = "qwen2.5:7b"
 
+
 # -----------------------------
 # CACHE RAG INIT
 # -----------------------------
@@ -48,6 +47,7 @@ def init_rag_once():
     index, documents = load_or_create_faiss(DATA_DIR)
     init_hybrid(documents, index)
     return documents
+
 
 # -----------------------------
 # SESSION STATE
@@ -103,11 +103,9 @@ Answer: {answer}
                 "model": OLLAMA_MODEL,
                 "prompt": prompt,
                 "stream": False,
-                "options": {
-                    "temperature": 0.1
-                }
+                "options": {"temperature": 0.1},
             },
-            timeout=240
+            timeout=240,
         )
 
         raw_output = res.json().get("response", "")
@@ -137,7 +135,7 @@ def default_judge():
         "relevance": 0.0,
         "correctness": 0.0,
         "final_score": 0.0,
-        "verdict": "error"
+        "verdict": "error",
     }
 
 
@@ -171,8 +169,7 @@ def login_page():
                 time.sleep(0.3)
 
                 success, role, token = authenticate(
-                    st.session_state.username_tmp,
-                    st.session_state.password_tmp
+                    st.session_state.username_tmp, st.session_state.password_tmp
                 )
 
                 if success:
@@ -186,7 +183,6 @@ def login_page():
                 else:
                     st.session_state.logging_in = False
                     st.error("❌ Invalid credentials")
-                    
 
     # -----------------------------
     # PHASE 2 → SHOW SPINNER
@@ -197,8 +193,7 @@ def login_page():
                 time.sleep(0.5)  # ensures spinner renders
 
                 success, role, token = authenticate(
-                    st.session_state.username_tmp,
-                    st.session_state.password_tmp
+                    st.session_state.username_tmp, st.session_state.password_tmp
                 )
 
                 if success:
@@ -213,6 +208,7 @@ def login_page():
                     st.session_state.logging_in = False
                     st.error("❌ Invalid credentials")
 
+
 # -----------------------------
 # FILE UPLOAD
 # -----------------------------
@@ -220,9 +216,7 @@ def upload_section():
     st.subheader("📂 Upload Documents")
 
     uploaded_files = st.file_uploader(
-        "Upload files",
-        type=["pdf", "csv", "txt"],
-        accept_multiple_files=True
+        "Upload files", type=["pdf", "csv", "txt"], accept_multiple_files=True
     )
 
     if uploaded_files:
@@ -245,6 +239,7 @@ def upload_section():
 
         st.success("✅ Instant RAG ready!")
 
+
 # -----------------------------
 # ✅ ASYNC WRAPPERS
 # -----------------------------
@@ -252,8 +247,10 @@ async def async_generate_answer(loop, query, contexts, citations):
     raw = await loop.run_in_executor(None, generate_answer, query, contexts, citations)
     return re.split(r"Sources?:", raw, flags=re.IGNORECASE)[0].strip()
 
+
 async def async_llm_judge(loop, query, answer):
     return await loop.run_in_executor(None, llm_judge, query, answer)
+
 
 async def run_async_pipeline(query, contexts, citations):
     loop = asyncio.get_event_loop()
@@ -266,13 +263,12 @@ async def run_async_pipeline(query, contexts, citations):
     answer = await answer_task
 
     # ✅ Run judge after answer ready
-    judge_task = asyncio.create_task(
-        async_llm_judge(loop, query, answer)
-    )
+    judge_task = asyncio.create_task(async_llm_judge(loop, query, answer))
 
     judge = await judge_task
 
     return answer, judge
+
 
 # -----------------------------
 # CHAT SECTION
@@ -289,13 +285,10 @@ def chat_section():
     query = st.text_input(
         "🔍 Ask a life sciences question...",
         placeholder="e.g. What is MEPS dataset?",
-        disabled=st.session_state.is_processing
+        disabled=st.session_state.is_processing,
     )
 
-    ask_clicked = st.button(
-        "Ask",
-        disabled=st.session_state.is_processing
-    )
+    ask_clicked = st.button("Ask", disabled=st.session_state.is_processing)
 
     if ask_clicked:
         if not query.strip():
@@ -330,24 +323,23 @@ def chat_section():
             #     else:
             #         index, _ = load_or_create_faiss(DATA_DIR)
             #         init_hybrid(st.session_state.documents, index)
-            
+
             # ✅ RAG already initialized in main()
             if "documents" not in st.session_state:
                 raise Exception("RAG not initialized properly")
 
-
             contexts, citations, _ = retrieve(query)
             # try:
-                # ✅ ASYNC EXECUTION
-                # loop = asyncio.new_event_loop()
-                # asyncio.set_event_loop(loop)
-                # ✅ Only generate answer (fast path)
+            # ✅ ASYNC EXECUTION
+            # loop = asyncio.new_event_loop()
+            # asyncio.set_event_loop(loop)
+            # ✅ Only generate answer (fast path)
             answer = generate_answer(query, contexts, citations)
             judge = None
 
-                # answer, judge = loop.run_until_complete(
-                #     run_async_pipeline(query, contexts, citations)
-                # )
+            # answer, judge = loop.run_until_complete(
+            #     run_async_pipeline(query, contexts, citations)
+            # )
             # finally:
             #     loop.close()
 
@@ -372,9 +364,9 @@ def chat_section():
                 🤖 {answer}
                 </div>
                 """,
-                unsafe_allow_html=True
+                unsafe_allow_html=True,
             )
-                # time.sleep(0.02)
+            # time.sleep(0.02)
 
             # -----------------------------
             # SOURCES
@@ -387,13 +379,16 @@ def chat_section():
             latency = round(time.time() - start, 2)
 
             # ✅ Save ONCE
-            st.session_state.chat_history.insert(0, {
-                "query": query,
-                "answer": answer,
-                "latency": latency,
-                "judge": judge,
-                "sources": unique_sources
-            })
+            st.session_state.chat_history.insert(
+                0,
+                {
+                    "query": query,
+                    "answer": answer,
+                    "latency": latency,
+                    "judge": judge,
+                    "sources": unique_sources,
+                },
+            )
 
         except Exception as e:
             st.error(f"Error: {str(e)}")
@@ -413,7 +408,7 @@ def chat_section():
             🧑 {chat['query']}
             </div>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
         st.markdown(
@@ -422,7 +417,7 @@ def chat_section():
             🤖 {chat['answer']}
             </div>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
         )
 
         if chat.get("sources"):
@@ -442,6 +437,7 @@ def chat_section():
 
         st.markdown("---")
 
+
 # -----------------------------
 # ADMIN PANEL
 # -----------------------------
@@ -460,7 +456,7 @@ def admin_panel():
 def app_main():
     # 🔥 Sidebar only here (after login)
     # sidebar()
-     # 🔥 HEADER WITH LOGOUT
+    # 🔥 HEADER WITH LOGOUT
     col1, col2 = st.columns([8, 1])
 
     with col1:
@@ -484,6 +480,7 @@ def app_main():
         upload_section()
 
     admin_panel()
+
 
 def main():
     if st.session_state.get("token"):
@@ -513,6 +510,7 @@ def main():
             login_page()
     else:
         login_page()
+
 
 if __name__ == "__main__":
     main()

@@ -17,9 +17,7 @@ MODEL_META_PATH = os.path.join(EMBEDDINGS_DIR, "model_meta.pkl")
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-MODEL_PATH = os.path.abspath(
-    os.path.join(BASE_DIR, "..", "model", "all-MiniLM-L6-v2")
-)
+MODEL_PATH = os.path.abspath(os.path.join(BASE_DIR, "..", "model", "all-MiniLM-L6-v2"))
 print("BASE_DIR:", BASE_DIR)
 print("MODEL_PATH:", MODEL_PATH)
 
@@ -28,12 +26,14 @@ print("DEBUG MODEL PATH:", MODEL_PATH)  # 👈 VERY IMPORTANT
 # model = SentenceTransformer(MODEL_PATH)
 _model = None
 
+
 def get_model():
     global _model
     if _model is None:
         print("Loading embedding model...")
         _model = SentenceTransformer(MODEL_PATH)
     return _model
+
 
 def is_model_changed():
     if not os.path.exists(MODEL_META_PATH):
@@ -55,6 +55,7 @@ def build_faiss_index(embeddings):
     index.add(embeddings)
 
     return index
+
 
 def load_or_create_faiss(data_dir):
     model_changed = is_model_changed()
@@ -86,11 +87,7 @@ def load_or_create_faiss(data_dir):
     # ========================
     # CASE 1: First time build
     # ========================
-    if (
-    not os.path.exists(INDEX_PATH)
-    or not os.path.exists(DOCS_PATH)
-    or model_changed
-):
+    if not os.path.exists(INDEX_PATH) or not os.path.exists(DOCS_PATH) or model_changed:
         print("⚡ Rebuilding FAISS index (first time / model changed)...")
 
         filtered_docs = []
@@ -106,12 +103,12 @@ def load_or_create_faiss(data_dir):
             raise ValueError("No valid text found")
         model = get_model()
         embeddings = model.encode(
-    texts,
-    batch_size=32,            # ✅ important
-    show_progress_bar=True,
-    convert_to_numpy=True,
-    normalize_embeddings=True  # ✅ replaces manual normalize
-)
+            texts,
+            batch_size=32,  # ✅ important
+            show_progress_bar=True,
+            convert_to_numpy=True,
+            normalize_embeddings=True,  # ✅ replaces manual normalize
+        )
         embeddings = np.array(embeddings).astype("float32")
 
         # faiss.normalize_L2(embeddings)
@@ -127,7 +124,7 @@ def load_or_create_faiss(data_dir):
 
         with open(META_PATH, "wb") as f:
             pickle.dump(current_map, f)
-        
+
         with open(MODEL_META_PATH, "wb") as f:
             pickle.dump({"model_path": MODEL_PATH}, f)
 
@@ -149,16 +146,16 @@ def load_or_create_faiss(data_dir):
             if content:
                 texts.append(content)
                 filtered_docs.append(doc)
-        
+
         model = get_model()
 
         embeddings = model.encode(
-    texts,
-    batch_size=32,            # ✅ important
-    show_progress_bar=True,
-    convert_to_numpy=True,
-    normalize_embeddings=True  # ✅ replaces manual normalize
-)
+            texts,
+            batch_size=32,  # ✅ important
+            show_progress_bar=True,
+            convert_to_numpy=True,
+            normalize_embeddings=True,  # ✅ replaces manual normalize
+        )
         embeddings = np.array(embeddings).astype("float32")
 
         # faiss.normalize_L2(embeddings)
@@ -195,7 +192,6 @@ def load_or_create_faiss(data_dir):
 
         new_docs = []
         new_texts = []
-        
 
         new_files_set = set(os.path.basename(f) for f in new_files)
         for doc in documents:
@@ -216,7 +212,7 @@ def load_or_create_faiss(data_dir):
                 batch_size=32,
                 show_progress_bar=True,
                 convert_to_numpy=True,
-                normalize_embeddings=True
+                normalize_embeddings=True,
             )
 
             new_embeddings = np.array(new_embeddings).astype("float32")
@@ -234,7 +230,7 @@ def load_or_create_faiss(data_dir):
 
             with open(META_PATH, "wb") as f:
                 pickle.dump(current_map, f)
-                
+
             with open(MODEL_META_PATH, "wb") as f:
                 pickle.dump({"model_path": MODEL_PATH}, f)
 
